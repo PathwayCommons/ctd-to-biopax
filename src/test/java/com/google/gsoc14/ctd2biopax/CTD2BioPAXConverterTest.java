@@ -1,4 +1,4 @@
-package com.google.gsoc14;
+package com.google.gsoc14.ctd2biopax;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
