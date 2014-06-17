@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <!-- $Id: CTD_chem_gene_ixns_structured.xsd 10788 2012-03-09 19:01:47Z mcr $ -->
+    <xs:annotation>
+        <xs:documentation>
+            The XML Schema for representing curated chemical-gene interactions from the Comparative Toxicogenomics
+            Database (CTD; ctdbase.org).
+        </xs:documentation>
+    </xs:annotation>
+    <xs:element name="ixnset" type="IxnSetType"/>
+    <xs:complexType name="ixnType">
+        <xs:annotation>
+            <xs:documentation>
+                A chemical-gene interaction.
+                An interaction consists of two or more actors connected by one or more actions.
+                An actor is either a chemical, a gene or a nested sub-interaction.
+                An action is a physical, regulatory or biochemical interaction between actors.
+                An interaction is reported in zero, one or more taxa (organisms), and is cited in one or more literature
+                references.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element type="taxonType" name="taxon" maxOccurs="unbounded" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>
+                        Taxa (organisms) in which the interaction occurs.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element type="referenceType" name="reference" maxOccurs="unbounded" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        Reference(s) in which the interaction is cited.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element type="axnType" name="axn" maxOccurs="unbounded" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        Action(s) that occur among the actors in the interaction.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element type="actorType" name="actor" maxOccurs="unbounded" minOccurs="2">
+                <xs:annotation>
+                    <xs:documentation>
+                        Genes, chemicals and/or nested interactions that are actors in this interaction.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute type="xs:long" name="id" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="axnType">
+        <xs:annotation>
+            <xs:documentation>
+                A type of physical, regulatory or biochemical action in an interaction.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="code" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The CTD code that represents the type of an action in this interaction.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute type="xs:int" name="degreecode" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The CTD code that represents the degree to which the action type occurs: '+' (increases),
+                            '-' (decreases), '1' (affects) or '0' (does not affect).
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute type="xs:string" name="position" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The integer that indicates the sequence in which this action appears relative to other
+                            actions in this interaction.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute type="xs:long" name="parentid" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The internal CTD ID of the action's parent (interaction) element.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="taxonType">
+        <xs:annotation>
+            <xs:documentation>
+                A taxon in which the interaction occurs.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:annotation>
+                    <xs:documentation>
+                        The scientific name of a taxon (organism) in which the interaction occurs.
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:attribute type="xs:string" name="id" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The NCBI Taxonomy ID of a taxon (organism) in which the interaction occurs.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="referenceType">
+        <xs:annotation>
+            <xs:documentation>
+                A reference in which the interaction is cited.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:positiveInteger" name="pmid" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The accession ID of a reference in which the interaction is cited.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="IxnSetType">
+        <xs:sequence>
+            <xs:element type="ixnType" name="ixn" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="actorType" mixed="true">
+        <xs:sequence>
+            <xs:element type="axnType" name="axn" maxOccurs="unbounded" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        The action(s) that occur among the actors in the interaction.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element type="actorType" name="actor" maxOccurs="unbounded" minOccurs="2">
+                <xs:annotation>
+                    <xs:documentation>
+                        The genes, chemicals and/or nested interactions that are actors in this interaction.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute type="xs:string" name="type" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The type of the actor: 'chemical', 'gene' or 'ixn' (nested interaction).
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type="xs:string" name="id" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The internal CTD ID of actors that are nested ixns, the accession identifier of actors that are
+                    chemicals or genes.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type="xs:long" name="parentid" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The internal CTD ID of the actor's parent (interaction) element.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type="xs:int" name="position" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The integer indicating the sequence in which this actor occurs with respect to all actors in the
+                    interaction.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type="xs:string" name="form" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    A qualifier that indicates the specific type or aspect of the actor in the interaction.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type="xs:string" name="formqualifier" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    A qualifier that further indicates the specific type or aspect of the actor in the interaction.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type="xs:string" name="seqid" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    The sequence accession identifier that helps identify a gene actor.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+</xs:schema>
