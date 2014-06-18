@@ -2,11 +2,11 @@ package com.google.gsoc14.ctd2biopax.converter;
 
 import org.biopax.paxtools.model.Model;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 
-public class CTDChemicalConverter implements Converter {
+public class CTDChemicalConverter extends Converter {
     @Override
-    public Model convert(FileInputStream fileInputStream) {
+    public Model convert(InputStream inputStream) {
         return null;
     }
 }

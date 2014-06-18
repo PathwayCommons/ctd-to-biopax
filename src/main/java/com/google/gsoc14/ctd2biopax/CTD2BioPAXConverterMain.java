@@ -24,10 +24,10 @@ public class CTD2BioPAXConverterMain {
         final CommandLineParser clParser = new GnuParser();
         Options gnuOptions = new Options();
         gnuOptions
-                .addOption("x", "interaction", true, "structured chemical-gene interaction file (XML)")
-                .addOption("g", "gene", true, "CTD gene vocabulary (CSV)")
-                .addOption("c", "chemical", true, "CTD chemical vocabulary (CSV)")
-                .addOption("o", "output", true, "Output (BioPAX file)")
+                .addOption("x", "interaction", true, "structured chemical-gene interaction file (XML) [required]")
+                .addOption("g", "gene", true, "CTD gene vocabulary (CSV) [optional]")
+                .addOption("c", "chemical", true, "CTD chemical vocabulary (CSV) [optional]")
+                .addOption("o", "output", true, "Output (BioPAX file) [required]")
         ;
 
         try {

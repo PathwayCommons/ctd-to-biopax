@@ -5,6 +5,7 @@ import org.biopax.paxtools.model.BioPAXLevel;
 import org.biopax.paxtools.model.Model;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 
 public abstract class Converter {
     private BioPAXFactory bioPAXFactory = BioPAXLevel.L3.getDefaultFactory();
@@ -17,5 +18,9 @@ public abstract class Converter {
         this.bioPAXFactory = bioPAXFactory;
     }
 
-    public abstract Model convert(FileInputStream fileInputStream);
+    public Model createNewModel() {
+        return getBioPAXFactory().createModel();
+    }
+
+    public abstract Model convert(InputStream inputStream);
 }
