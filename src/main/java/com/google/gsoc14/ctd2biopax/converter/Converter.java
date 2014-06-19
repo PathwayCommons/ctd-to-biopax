@@ -1,5 +1,6 @@
 package com.google.gsoc14.ctd2biopax.converter;
 
+import org.biopax.paxtools.model.BioPAXElement;
 import org.biopax.paxtools.model.BioPAXFactory;
 import org.biopax.paxtools.model.BioPAXLevel;
 import org.biopax.paxtools.model.Model;
@@ -20,6 +21,10 @@ public abstract class Converter {
 
     public Model createNewModel() {
         return getBioPAXFactory().createModel();
+    }
+
+    public <T extends BioPAXElement> T create(Class<T> aClass, String uri) {
+        return getBioPAXFactory().create(aClass, uri);
     }
 
     public abstract Model convert(InputStream inputStream);

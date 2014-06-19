@@ -50,7 +50,7 @@ public class AxnType {
     @XmlAttribute(name = "code", required = true)
     protected String code;
     @XmlAttribute(name = "degreecode", required = true)
-    protected int degreecode;
+    protected String degreecode;
     @XmlAttribute(name = "position", required = true)
     protected String position;
     @XmlAttribute(name = "parentid", required = true)
@@ -108,7 +108,7 @@ public class AxnType {
      * Gets the value of the degreecode property.
      * 
      */
-    public int getDegreecode() {
+    public String getDegreecode() {
         return degreecode;
     }
 
@@ -116,7 +116,7 @@ public class AxnType {
      * Sets the value of the degreecode property.
      * 
      */
-    public void setDegreecode(int value) {
+    public void setDegreecode(String value) {
         this.degreecode = value;
     }
 
