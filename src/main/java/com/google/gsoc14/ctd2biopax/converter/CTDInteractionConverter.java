@@ -22,9 +22,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class CTDInteractionConverter extends Converter {
     private static Log log = LogFactory.getLog(CTDInteractionConverter.class);
@@ -133,11 +131,14 @@ public class CTDInteractionConverter extends Converter {
 
     private Process createProcessFromAction(Model model, IxnType ixn, ActorType actor) {
         AxnCode axnCode = CTDUtil.extractAxnCode(ixn);
-        String processId = "process_" + ixn.getId();
+        String processId = CTDUtil.createProcessId(ixn);
         Process process;
         switch (axnCode) {
             case EXP:
-                    process = createExpressionReaction(model, ixn, actor, processId);
+                process = createExpressionReaction(model, ixn, actor, processId);
+                break;
+            case ACT:
+                process = createActDeactReaction(model, ixn, actor, processId);
                 break;
             default:
                 Pathway pathway = create(Pathway.class, processId);
@@ -147,6 +148,27 @@ public class CTDInteractionConverter extends Converter {
         }
 
         return process;
+    }
+
+    private Process createActDeactReaction(Model model, IxnType ixn, ActorType actor, String processId) {
+        BiochemicalReaction biochemicalReaction = create(BiochemicalReaction.class, processId);
+        SimplePhysicalEntity leftPar = createSPEFromActor(model, actor);
+        SimplePhysicalEntity rightPar = createSPEFromActor(model, actor);
+        biochemicalReaction.addLeft(leftPar);
+        biochemicalReaction.addRight(rightPar);
+        biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
+
+        ModificationFeature feature = create(ModificationFeature.class, "mod_" + processId);
+        SequenceModificationVocabulary modificationVocabulary = create(SequenceModificationVocabulary.class, "seqmod_" + processId);
+        modificationVocabulary.addTerm("active");
+        feature.setModificationType(modificationVocabulary);
+        rightPar.addFeature(feature);
+
+        model.add(biochemicalReaction);
+        model.add(feature);
+        model.add(modificationVocabulary);
+
+        return biochemicalReaction;
     }
 
     private Process createExpressionReaction(Model model, IxnType ixn, ActorType actor, String processId) {
@@ -301,7 +323,7 @@ public class CTDInteractionConverter extends Converter {
             Class<? extends EntityReference> referenceClass
     ) {
         String actorTypeId = actorType.getId();
-        String entityId = actorTypeId + "_" + actorType.getParentid();
+        String entityId = actorTypeId + "_" + actorType.getParentid() + "_" + UUID.randomUUID();
         String refId = "ref_" + actorType.getForm() + "_" + actorTypeId;
 
         EntityReference entityReference = (EntityReference) model.getByID(refId);
@@ -316,10 +338,8 @@ public class CTDInteractionConverter extends Converter {
         simplePhysicalEntity.setEntityReference(entityReference);
         model.add(simplePhysicalEntity);
 
-
         return simplePhysicalEntity;
     }
-
 
     private void assignName(String name, Named named) {
         named.setStandardName(name);

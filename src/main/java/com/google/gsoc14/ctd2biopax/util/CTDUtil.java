@@ -97,4 +97,8 @@ public class CTDUtil {
     public static ActorTypeType extractActorTypeType(ActorType actor) {
         return ActorTypeType.valueOf(actor.getType().toUpperCase());
     }
+
+    public static String createProcessId(IxnType ixnType) {
+        return "process_" + ixnType.getId();
+    }
 }
