@@ -101,7 +101,11 @@ public class CTDInteractionConverter extends Converter {
             model.add(pathway);
         }
         pathway.addPathwayComponent(control);
+        addReactionToPathwayByTraversing(model, control, pathway);
 
+    }
+
+    private void addReactionToPathwayByTraversing(Model model, Process control, Pathway pathway) {
         // Propagate pathway assignments
         final Pathway finalPathway = pathway;
         Traverser traverser = new Traverser(SimpleEditorMap.get(BioPAXLevel.L3), new Visitor() {
@@ -131,26 +135,114 @@ public class CTDInteractionConverter extends Converter {
 
     private Process createProcessFromAction(Model model, IxnType ixn, ActorType actor) {
         AxnCode axnCode = CTDUtil.extractAxnCode(ixn);
-        String processId = CTDUtil.createProcessId(ixn);
-        Process process;
+        String processId = CTDUtil.createProcessId(ixn, actor);
+
+        Process process = (Process) model.getByID(processId);
+        if(process != null)
+            return process;
+
         switch (axnCode) {
             case EXP:
                 process = createExpressionReaction(model, ixn, actor, processId);
                 break;
             case ACT:
-                process = createActDeactReaction(model, ixn, actor, processId);
+                process = createModificationReaction(model, actor, processId, "inactive", "active");
                 break;
-            default:
+            case MUT:
+                process = createModificationReaction(model, actor, processId, "wildtype", "mutated");
+                break;
+            case SPL: // splicing
+                process = createModificationReaction(model, actor, processId, null, "spliced");
+                break;
+            case STA: // stability
+                process = createModificationReaction(model, actor, processId, "instable", "stable");
+                break;
+            case ACE:
+            case ACY:
+            case ALK:
+            case AMI:
+            case CAR:
+            case COX:
+            case ETH:
+            case GLT:
+            case GYC:
+            case GLY:
+            case GLC:
+            case NGL:
+            case OGL:
+            case HDX:
+            case LIP:
+            case FAR:
+            case GER:
+            case MYR:
+            case PAL:
+            case PRE:
+            case MYL:
+            case NIT:
+            case NUC:
+            case OXD:
+            case PHO:
+            case RED:
+            case RIB:
+            case ARB:
+            case SUL:
+            case SUM:
+            case UBQ:
+                process = createModificationReaction(model, actor, processId, null, axnCode.getTypeName());
+                break;
+            case DEG:
+            case HYD:
+                // general degredation
+                process = createDegradationReaction(model, actor, processId);
+                break;
+            case RXN: // Reaction
                 Pathway pathway = create(Pathway.class, processId);
                 transferNames(ixn, pathway);
                 model.add(pathway);
+                IxnType newIxn = CTDUtil.convertActorToIxn(actor);
+                addReactionToPathwayByTraversing(model, convertInteraction(model, newIxn), pathway);
                 process = pathway;
+                break;
+            case EXT:
+            case SEC:
+                // export /sec
+            case UPT:
+            case IMT:
+                // import / uptake
+            case CSY:
+                // Chemical synthesis
+            case TRT: // transport
+            case MET: // metabolism
+            case ABU: // abundance
+            case FOL: // folding
+            case LOC: // localization
+            case REC: // Response to substance
+            default:
+                Pathway blackbox = create(Pathway.class, processId);
+                transferNames(ixn, blackbox);
+                model.add(blackbox);
+                process = blackbox;
         }
+
+        // Add action description as a comment
+        process.addComment(axnCode.getDescription());
 
         return process;
     }
 
-    private Process createActDeactReaction(Model model, IxnType ixn, ActorType actor, String processId) {
+    private Process createDegradationReaction(Model model, ActorType actor, String processId) {
+        Degradation degradation = create(Degradation.class, processId);
+        SimplePhysicalEntity par = createSPEFromActor(model, actor);
+        degradation.addLeft(par);
+        degradation.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
+
+        model.add(degradation);
+
+        return degradation;
+    }
+
+
+    private Process createModificationReaction(Model model, ActorType actor, String processId, String leftTerm, String rightTerm) {
         BiochemicalReaction biochemicalReaction = create(BiochemicalReaction.class, processId);
         SimplePhysicalEntity leftPar = createSPEFromActor(model, actor);
         SimplePhysicalEntity rightPar = createSPEFromActor(model, actor);
@@ -158,17 +250,28 @@ public class CTDInteractionConverter extends Converter {
         biochemicalReaction.addRight(rightPar);
         biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
 
-        ModificationFeature feature = create(ModificationFeature.class, "mod_" + processId);
-        SequenceModificationVocabulary modificationVocabulary = create(SequenceModificationVocabulary.class, "seqmod_" + processId);
-        modificationVocabulary.addTerm("active");
-        feature.setModificationType(modificationVocabulary);
-        rightPar.addFeature(feature);
+        if(leftTerm != null) {
+            leftPar.addFeature(createModFeature(model, "modl_" + processId, leftTerm));
+        }
+
+        if(rightTerm != null) {
+            rightPar.addFeature(createModFeature(model, "modr_" + processId, rightTerm));
+        }
 
         model.add(biochemicalReaction);
+
+        return biochemicalReaction;
+    }
+
+    private ModificationFeature createModFeature(Model model, String id, String term) {
+        ModificationFeature feature = create(ModificationFeature.class, id);
+        SequenceModificationVocabulary modificationVocabulary = create(SequenceModificationVocabulary.class, "seqmod_" + id);
+        modificationVocabulary.addTerm(term);
+        feature.setModificationType(modificationVocabulary);
         model.add(feature);
         model.add(modificationVocabulary);
 
-        return biochemicalReaction;
+        return feature;
     }
 
     private Process createExpressionReaction(Model model, IxnType ixn, ActorType actor, String processId) {

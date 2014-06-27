@@ -43,7 +43,6 @@ public class CTDUtil {
     }
 
     public static String extractName(ActorType actor) {
-        // TODO: Better name extraction
         List<Serializable> serializableList = actor.getContent();
         assert !serializableList.isEmpty();
 
@@ -98,7 +97,8 @@ public class CTDUtil {
         return ActorTypeType.valueOf(actor.getType().toUpperCase());
     }
 
-    public static String createProcessId(IxnType ixnType) {
-        return "process_" + ixnType.getId();
+    public static String createProcessId(IxnType ixnType, ActorType actor) {
+        return "process_" + extractAxnCode(extractAxn(ixnType)) + "_" + extractName(actor);
     }
+
 }
