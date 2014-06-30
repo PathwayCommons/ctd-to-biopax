@@ -11,6 +11,8 @@ import org.ctdbase.model.ObjectFactory;
 
 import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.List;
 
@@ -98,7 +100,28 @@ public class CTDUtil {
     }
 
     public static String createProcessId(IxnType ixnType, ActorType actor) {
-        return "process_" + extractAxnCode(extractAxn(ixnType)) + "_" + extractName(actor);
+        return sanitizeId("process_" + extractAxnCode(extractAxn(ixnType)) + "_" + extractName(actor));
     }
 
+    public static String locationToId(String location) {
+        return "location_" + sanitizeId(location);
+    }
+
+    public static String sanitizeId(String str) {
+        try {
+            return URLEncoder.encode(str, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            log.error("Problem encoding the ID: " + e.getMessage());
+            return str;
+        }
+    }
+
+    public static String sanitizeGeneForm(String form) {
+        return form
+                .replaceAll(" ", "_")
+                .replaceAll("'", "")
+                .replaceAll("3", "THREE")
+                .replaceAll("5", "FIVE")
+                ;
+    }
 }

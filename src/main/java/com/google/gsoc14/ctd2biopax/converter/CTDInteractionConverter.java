@@ -86,7 +86,7 @@ public class CTDInteractionConverter extends Converter {
             pathway = create(Pathway.class, taxonId);
             assignName(taxonName + " pathway", pathway);
 
-            // Let's asign the biosource
+            // Let's assign the biosource
             BioSource bioSource = create(BioSource.class, "src_" + orgTaxId);
             assignName(taxonName, bioSource);
             pathway.setOrganism(bioSource);
@@ -157,6 +157,8 @@ public class CTDInteractionConverter extends Converter {
             case STA: // stability
                 process = createModificationReaction(model, actor, processId, "instable", "stable");
                 break;
+            // The following are all metabolic reactions identified by the PTM name
+            // So we will just use the modifier name generically for all these
             case ACE:
             case ACY:
             case ALK:
@@ -205,12 +207,15 @@ public class CTDInteractionConverter extends Converter {
                 break;
             case EXT:
             case SEC:
-                // export /sec
+                process = createTransportReaction(model, actor, processId, null, "extracellular matrix");
+                break;
             case UPT:
             case IMT:
-                // import / uptake
+                process = createTransportReaction(model, actor, processId, "extracellular matrix", null);
+                break;
             case CSY:
-                // Chemical synthesis
+                process = createSynthesisReaction(model, actor, processId);
+                break;
             case TRT: // transport
             case MET: // metabolism
             case ABU: // abundance
@@ -241,6 +246,51 @@ public class CTDInteractionConverter extends Converter {
         return degradation;
     }
 
+    private Process createSynthesisReaction(Model model, ActorType actor, String processId) {
+        BiochemicalReaction biochemicalReaction = create(BiochemicalReaction.class, processId);
+        SimplePhysicalEntity rightPar = createSPEFromActor(model, actor);
+
+        biochemicalReaction.addRight(rightPar);
+        biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
+        model.add(biochemicalReaction);
+
+        return biochemicalReaction;
+    }
+
+    private Process createTransportReaction(Model model, ActorType actor, String processId, String leftLoc, String rightLoc) {
+        Conversion transport = create(BiochemicalReaction.class, processId);
+        SimplePhysicalEntity leftPar = createSPEFromActor(model, actor);
+        SimplePhysicalEntity rightPar = createSPEFromActor(model, actor);
+        transport.addLeft(leftPar);
+        transport.addRight(rightPar);
+        transport.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
+
+        if(leftLoc != null) {
+            leftPar.setCellularLocation(createCellularLocation(model, leftLoc));
+        }
+
+        if(rightLoc != null) {
+            rightPar.setCellularLocation(createCellularLocation(model, rightLoc));
+        }
+
+        model.add(transport);
+
+        return transport;
+    }
+
+    private CellularLocationVocabulary createCellularLocation(Model model, String location) {
+        String locId = CTDUtil.locationToId(location);
+
+        CellularLocationVocabulary cellularLocationVocabulary = (CellularLocationVocabulary) model.getByID(locId);
+        if(cellularLocationVocabulary == null) {
+            cellularLocationVocabulary = create(CellularLocationVocabulary.class, locId);
+            cellularLocationVocabulary.addTerm(location);
+            model.add(cellularLocationVocabulary);
+        }
+
+        return cellularLocationVocabulary;
+    }
+
 
     private Process createModificationReaction(Model model, ActorType actor, String processId, String leftTerm, String rightTerm) {
         BiochemicalReaction biochemicalReaction = create(BiochemicalReaction.class, processId);
@@ -250,13 +300,24 @@ public class CTDInteractionConverter extends Converter {
         biochemicalReaction.addRight(rightPar);
         biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
 
-        if(leftTerm != null) {
-            leftPar.addFeature(createModFeature(model, "modl_" + processId, leftTerm));
+        if(CTDUtil.extractActorTypeType(actor).equals(ActorTypeType.CHEMICAL)) {
+            if(leftTerm != null) {
+                leftPar.setDisplayName(leftPar.getDisplayName() + " (" + leftTerm + ")");
+            }
+
+            if(rightTerm != null) {
+                rightPar.setDisplayName(rightPar.getDisplayName() + " (" + rightTerm + ")");
+            }
+        } else {
+            if(leftTerm != null) {
+                leftPar.addFeature(createModFeature(model, "modl_" + processId, leftTerm));
+            }
+
+            if(rightTerm != null) {
+                rightPar.addFeature(createModFeature(model, "modr_" + processId, rightTerm));
+            }
         }
 
-        if(rightTerm != null) {
-            rightPar.addFeature(createModFeature(model, "modr_" + processId, rightTerm));
-        }
 
         model.add(biochemicalReaction);
 
@@ -268,6 +329,13 @@ public class CTDInteractionConverter extends Converter {
         SequenceModificationVocabulary modificationVocabulary = create(SequenceModificationVocabulary.class, "seqmod_" + id);
         modificationVocabulary.addTerm(term);
         feature.setModificationType(modificationVocabulary);
+        /*
+        SequenceSite sequenceSite = create(SequenceSite.class, "seqloc_" + id);
+        sequenceSite.setPositionStatus(PositionStatusType.EQUAL);
+        sequenceSite.setSequencePosition(BioPAXElement.UNKNOWN_INT);
+        feature.setFeatureLocation(sequenceSite);
+        model.add(sequenceSite);
+        */
         model.add(feature);
         model.add(modificationVocabulary);
 
@@ -342,7 +410,7 @@ public class CTDInteractionConverter extends Converter {
                 GeneForm geneForm =
                         form == null
                                 ? GeneForm.PROTEIN
-                                : GeneForm.valueOf(form.toUpperCase().replaceAll(" ", "_"));
+                                : GeneForm.valueOf(CTDUtil.sanitizeGeneForm(form).toUpperCase());
 
                 Class<? extends SimplePhysicalEntity> eClass;
                 Class<? extends EntityReference> refClass;
@@ -364,12 +432,14 @@ public class CTDInteractionConverter extends Converter {
                         break;
                     case PROMOTER:
                     case ENHANCER:
-                    case EXON:
-                    case INTRON:
                         eClass = DnaRegion.class;
                         refClass = DnaRegionReference.class;
                         break;
+                    case THREE_UTR:
+                    case FIVE_UTR:
                     case POLYA_TAIL:
+                    case EXON:
+                    case INTRON:
                         eClass = RnaRegion.class;
                         refClass = RnaRegionReference.class;
                         break;
@@ -427,7 +497,7 @@ public class CTDInteractionConverter extends Converter {
     ) {
         String actorTypeId = actorType.getId();
         String entityId = actorTypeId + "_" + actorType.getParentid() + "_" + UUID.randomUUID();
-        String refId = "ref_" + actorType.getForm() + "_" + actorTypeId;
+        String refId = CTDUtil.sanitizeId("ref_" + actorType.getForm() + "_" + actorTypeId);
 
         EntityReference entityReference = (EntityReference) model.getByID(refId);
         if(entityReference == null) {

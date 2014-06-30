@@ -1,6 +1,8 @@
 package com.google.gsoc14.ctd2biopax.util.model;
 
 public enum GeneForm {
+    THREE_UTR("3' UTR"),
+    FIVE_UTR("3' UTR"),
     MRNA("mRNA"),
     PROTEIN("protein"),
     GENE("gene"),

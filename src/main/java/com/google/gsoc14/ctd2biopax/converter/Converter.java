@@ -1,11 +1,11 @@
 package com.google.gsoc14.ctd2biopax.converter;
 
+import com.google.gsoc14.ctd2biopax.util.CTDUtil;
 import org.biopax.paxtools.model.BioPAXElement;
 import org.biopax.paxtools.model.BioPAXFactory;
 import org.biopax.paxtools.model.BioPAXLevel;
 import org.biopax.paxtools.model.Model;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 
 public abstract class Converter {
