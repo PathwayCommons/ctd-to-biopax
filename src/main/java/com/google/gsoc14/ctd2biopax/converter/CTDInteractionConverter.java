@@ -329,13 +329,6 @@ public class CTDInteractionConverter extends Converter {
         SequenceModificationVocabulary modificationVocabulary = create(SequenceModificationVocabulary.class, "seqmod_" + id);
         modificationVocabulary.addTerm(term);
         feature.setModificationType(modificationVocabulary);
-        /*
-        SequenceSite sequenceSite = create(SequenceSite.class, "seqloc_" + id);
-        sequenceSite.setPositionStatus(PositionStatusType.EQUAL);
-        sequenceSite.setSequencePosition(BioPAXElement.UNKNOWN_INT);
-        feature.setFeatureLocation(sequenceSite);
-        model.add(sequenceSite);
-        */
         model.add(feature);
         model.add(modificationVocabulary);
 
@@ -417,9 +410,12 @@ public class CTDInteractionConverter extends Converter {
                 switch (geneForm) {
                     default:
                     case PROTEIN:
+                    case ALTERNATIVE_FORM:
+                    case MODIFIED_FORM:
                         eClass = Protein.class;
                         refClass = ProteinReference.class;
                         break;
+                    case MUTANT_FORM:
                     case GENE:
                     case MRNA:
                         eClass = Rna.class;
@@ -497,7 +493,9 @@ public class CTDInteractionConverter extends Converter {
     ) {
         String actorTypeId = actorType.getId();
         String entityId = actorTypeId + "_" + actorType.getParentid() + "_" + UUID.randomUUID();
-        String refId = CTDUtil.sanitizeId("ref_" + actorType.getForm() + "_" + actorTypeId);
+        String form = actorType.getForm();
+        if(form == null) { form = actorTypeId.toLowerCase().startsWith("gene") ? "gene" : "chemical"; }
+        String refId = CTDUtil.createRefRDFId(form.toUpperCase(), actorTypeId);
 
         EntityReference entityReference = (EntityReference) model.getByID(refId);
         if(entityReference == null) {

@@ -2,6 +2,7 @@ package com.google.gsoc14.ctd2biopax.util;
 
 import com.google.gsoc14.ctd2biopax.util.model.ActorTypeType;
 import com.google.gsoc14.ctd2biopax.util.model.AxnCode;
+import com.google.gsoc14.ctd2biopax.util.model.GeneForm;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ctdbase.model.ActorType;
@@ -123,5 +124,9 @@ public class CTDUtil {
                 .replaceAll("3", "THREE")
                 .replaceAll("5", "FIVE")
                 ;
+    }
+
+    public static String createRefRDFId(String form, String actorId) {
+        return CTDUtil.sanitizeId("ref_" + form + "_" + actorId);
     }
 }

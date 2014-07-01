@@ -6,6 +6,7 @@ import org.biopax.paxtools.model.BioPAXFactory;
 import org.biopax.paxtools.model.BioPAXLevel;
 import org.biopax.paxtools.model.Model;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 public abstract class Converter {
@@ -27,5 +28,5 @@ public abstract class Converter {
         return getBioPAXFactory().create(aClass, uri);
     }
 
-    public abstract Model convert(InputStream inputStream);
+    public abstract Model convert(InputStream inputStream) throws IOException;
 }
