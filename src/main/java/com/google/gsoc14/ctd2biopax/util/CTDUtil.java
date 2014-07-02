@@ -15,6 +15,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 public class CTDUtil {
     private static Log log = LogFactory.getLog(CTDUtil.class);
@@ -100,7 +101,7 @@ public class CTDUtil {
     }
 
     public static String createProcessId(IxnType ixnType, ActorType actor) {
-        return sanitizeId("process_" + extractAxnCode(extractAxn(ixnType)) + "_" + extractName(actor));
+        return sanitizeId("process_" + extractAxnCode(extractAxn(ixnType)) + "_" + UUID.randomUUID());
     }
 
     public static String locationToId(String location) {

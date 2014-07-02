@@ -53,15 +53,11 @@ public class CTDInteractionConverter extends Converter {
     private Control convertInteraction(Model model, IxnType ixn) {
         // We are going to use the first actor to create the controller
         List<ActorType> actors = ixn.getActor();
-        Control control = createControlFromActor(model, ixn, actors.get(0));
         Process process = createProcessFromAction(model, ixn, actors.get(1));
+        Control control = createControlFromActor(model, ixn, actors.get(0));
         control.addControlled(process);
         assignControlVocabulary(control, ixn.getAxn().iterator().next());
 
-        // Categorize according to the organism via pathways
-        for (TaxonType taxonType : ixn.getTaxon()) {
-            assignReactionToPathway(model, control, taxonType);
-        }
 
         // Now annotate with publications
         int count = 0;
@@ -73,11 +69,26 @@ public class CTDInteractionConverter extends Converter {
             model.add(publicationXref);
         }
 
+        Process topProcess;
+        // Binding reactions are special, don't want controls for them -- so let's back roll
+        if(CTDUtil.extractAxnCode(ixn).equals(AxnCode.B)) {
+            control.removeControlled(process);
+            model.remove(control);
+            topProcess = process;
+        } else {
+            topProcess = control;
+        }
+
+        // Categorize according to the organism via pathways
+        for (TaxonType taxonType : ixn.getTaxon()) {
+            assignReactionToPathway(model, topProcess, taxonType);
+        }
+
         // And viola!
         return control;
     }
 
-    private void assignReactionToPathway(Model model, Control control, TaxonType taxonType) {
+    private void assignReactionToPathway(Model model, Process process, TaxonType taxonType) {
         String taxonName = taxonType.getValue();
         String orgTaxId = taxonType.getId();
         String taxonId = "taxon_pathway_" + orgTaxId;
@@ -100,8 +111,8 @@ public class CTDInteractionConverter extends Converter {
             model.add(bioSource);
             model.add(pathway);
         }
-        pathway.addPathwayComponent(control);
-        addReactionToPathwayByTraversing(model, control, pathway);
+        pathway.addPathwayComponent(process);
+        addReactionToPathwayByTraversing(model, process, pathway);
 
     }
 
