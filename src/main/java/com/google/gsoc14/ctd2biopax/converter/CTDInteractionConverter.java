@@ -53,11 +53,15 @@ public class CTDInteractionConverter extends Converter {
     private Control convertInteraction(Model model, IxnType ixn) {
         // We are going to use the first actor to create the controller
         List<ActorType> actors = ixn.getActor();
+        if(actors.size() < 2) {
+            log.warn("Ixn #" + ixn.getId() + " has less than two actors. Skipping conversion for this reaction. ");
+            return null;
+        }
+
         Process process = createProcessFromAction(model, ixn, actors.get(1));
         Control control = createControlFromActor(model, ixn, actors.get(0));
         control.addControlled(process);
         assignControlVocabulary(control, ixn.getAxn().iterator().next());
-
 
         // Now annotate with publications
         int count = 0;

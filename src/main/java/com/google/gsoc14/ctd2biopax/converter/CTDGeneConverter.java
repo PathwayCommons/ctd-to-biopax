@@ -36,7 +36,6 @@ public class CTDGeneConverter extends Converter {
 
 
             for (GeneForm geneForm : GeneForm.values()) {
-
                 generateReference(model, geneForm.getReferenceClass(), geneForm, nextLine);
             }
         }
