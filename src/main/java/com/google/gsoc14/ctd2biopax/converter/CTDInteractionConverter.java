@@ -405,42 +405,8 @@ public class CTDInteractionConverter extends Converter {
                                 ? GeneForm.PROTEIN
                                 : GeneForm.valueOf(CTDUtil.sanitizeGeneForm(form).toUpperCase());
 
-                Class<? extends SimplePhysicalEntity> eClass;
-                Class<? extends EntityReference> refClass;
-                switch (geneForm) {
-                    default:
-                    case PROTEIN:
-                    case ALTERNATIVE_FORM:
-                    case MODIFIED_FORM:
-                        eClass = Protein.class;
-                        refClass = ProteinReference.class;
-                        break;
-                    case MUTANT_FORM:
-                    case GENE:
-                    case MRNA:
-                        eClass = Rna.class;
-                        refClass = RnaReference.class;
-                        break;
-                    case SNP:
-                    case POLYMORPHISM:
-                        eClass = Dna.class;
-                        refClass = DnaReference.class;
-                        break;
-                    case PROMOTER:
-                    case ENHANCER:
-                        eClass = DnaRegion.class;
-                        refClass = DnaRegionReference.class;
-                        break;
-                    case THREE_UTR:
-                    case FIVE_UTR:
-                    case POLYA_TAIL:
-                    case EXON:
-                    case INTRON:
-                        eClass = RnaRegion.class;
-                        refClass = RnaRegionReference.class;
-                        break;
-                }
-
+                Class<? extends SimplePhysicalEntity> eClass = geneForm.getEntityClass();
+                Class<? extends EntityReference> refClass = geneForm.getReferenceClass();
                 spe = createEntityFromActor(model, actor, eClass, refClass);
                 break;
             case CHEMICAL:
@@ -494,7 +460,17 @@ public class CTDInteractionConverter extends Converter {
         String actorTypeId = actorType.getId();
         String entityId = actorTypeId + "_" + actorType.getParentid() + "_" + UUID.randomUUID();
         String form = actorType.getForm();
-        if(form == null) { form = actorTypeId.toLowerCase().startsWith("gene") ? "gene" : "chemical"; }
+        ActorTypeType actorTypeType = CTDUtil.extractActorTypeType(actorType);
+        // Override all forms of chemicals (none || analog)
+        if(actorTypeType.equals(ActorTypeType.CHEMICAL)) {
+            form = "chemical";
+        }
+        // If we still don't have any forms, then it means it is a gene, hence we need a protein by default
+        if((form == null || form.isEmpty()) && actorTypeType.equals(ActorTypeType.GENE)) {
+            form = "protein";
+        }
+        // By this time we should have assign a form
+        assert form != null;
         String refId = CTDUtil.createRefRDFId(form.toUpperCase(), actorTypeId);
 
         EntityReference entityReference = (EntityReference) model.getByID(refId);

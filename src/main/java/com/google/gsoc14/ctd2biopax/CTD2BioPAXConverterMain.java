@@ -8,13 +8,17 @@ import org.apache.commons.cli.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.biopax.paxtools.controller.Merger;
+import org.biopax.paxtools.controller.ModelUtils;
 import org.biopax.paxtools.io.SimpleIOHandler;
+import org.biopax.paxtools.model.BioPAXElement;
 import org.biopax.paxtools.model.Model;
+import org.biopax.paxtools.model.level3.EntityReference;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Set;
 
 public class CTD2BioPAXConverterMain {
     private static Log log = LogFactory.getLog(CTD2BioPAXConverterMain.class);
@@ -28,6 +32,7 @@ public class CTD2BioPAXConverterMain {
                 .addOption("g", "gene", true, "CTD gene vocabulary (CSV) [optional]")
                 .addOption("c", "chemical", true, "CTD chemical vocabulary (CSV) [optional]")
                 .addOption("o", "output", true, "Output (BioPAX file) [required]")
+                .addOption("r", "remove-tangling", false, "Remove tangling entities for clean-up [optional]")
         ;
 
         try {
@@ -49,6 +54,11 @@ public class CTD2BioPAXConverterMain {
             // If we have other files, also merge them to the final model
             convertAndMergeFile(commandLine, "g", new CTDGeneConverter(), merger, finalModel);
             convertAndMergeFile(commandLine, "c", new CTDChemicalConverter(), merger, finalModel);
+
+            if(commandLine.hasOption("r")) {
+                Set<BioPAXElement> removed = ModelUtils.removeObjectsIfDangling(finalModel, EntityReference.class);
+                log.info("Removed " + removed.size() + " tangling entity references from the model.");
+            }
 
             String outputFile = commandLine.getOptionValue("o");
             log.info("Done with the conversions. Converting the final model to OWL: " + outputFile);
@@ -81,7 +91,8 @@ public class CTD2BioPAXConverterMain {
             FileInputStream fis = new FileInputStream(fileName);
             log.info(
                     "Found option '" + option + "'. " +
-                    "Using " + converter.getClass().getSimpleName() + " for conversion of file: " + fileName);
+                            "Using " + converter.getClass().getSimpleName() + " for conversion of file: " + fileName
+            );
             Model model = converter.convert(fis);
             merger.merge(finalModel, model);
             fis.close();

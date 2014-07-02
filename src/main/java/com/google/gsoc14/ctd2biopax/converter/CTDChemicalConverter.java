@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public class CTDChemicalConverter extends Converter {
     private static Log log = LogFactory.getLog(CTDChemicalConverter.class);
-    private static final String INTRA_FIELD_SEPERATOR = "\\|";
+    private static final String INTRA_FIELD_SEPARATOR = "\\|";
 
     @Override
     public Model convert(InputStream inputStream) throws IOException {
@@ -43,9 +43,9 @@ public class CTDChemicalConverter extends Converter {
             String chemicalId = nextLine[1];
             String casRN = nextLine[2];
             String definition = nextLine[3];
-            String[] parentIDs = nextLine[4].split(INTRA_FIELD_SEPERATOR);
-            String[] synonyms = nextLine[7].split(INTRA_FIELD_SEPERATOR);
-            String[] dbIds = nextLine[8].split(INTRA_FIELD_SEPERATOR);
+            String[] parentIDs = nextLine[4].split(INTRA_FIELD_SEPARATOR);
+            String[] synonyms = nextLine[7].split(INTRA_FIELD_SEPARATOR);
+            String[] dbIds = nextLine[8].split(INTRA_FIELD_SEPARATOR);
 
             String rdfId = CTDUtil.createRefRDFId("CHEMICAL", chemicalId);
             SmallMoleculeReference smallMolecule = (SmallMoleculeReference) model.getByID(rdfId);
