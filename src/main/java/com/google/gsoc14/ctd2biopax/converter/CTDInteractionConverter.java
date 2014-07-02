@@ -190,6 +190,7 @@ public class CTDInteractionConverter extends Converter {
             case SUL:
             case SUM:
             case UBQ:
+            case CLV:
                 process = createModificationReaction(model, actor, processId, null, axnCode.getTypeName());
                 break;
             case DEG:
@@ -216,6 +217,9 @@ public class CTDInteractionConverter extends Converter {
             case CSY:
                 process = createSynthesisReaction(model, actor, processId);
                 break;
+            case B:
+                process = createBindingReaction(model, ixn);
+                break;
             case TRT: // transport
             case MET: // metabolism
             case ABU: // abundance
@@ -223,6 +227,8 @@ public class CTDInteractionConverter extends Converter {
             case LOC: // localization
             case REC: // Response to substance
             default:
+                log.warn("We don't have a proper representation of " + axnCode.getTypeName() + " reactions. " +
+                        "Creating a black-box pathway for interaction #" + ixn.getId());
                 Pathway blackbox = create(Pathway.class, processId);
                 transferNames(ixn, blackbox);
                 model.add(blackbox);
@@ -233,6 +239,25 @@ public class CTDInteractionConverter extends Converter {
         process.addComment(axnCode.getDescription());
 
         return process;
+    }
+
+    private Process createBindingReaction(Model model, IxnType ixn) {
+        List<ActorType> actors = ixn.getActor();
+        assert actors.size() >= 2;
+
+        Complex complex = createComplex(model, ixn);
+        SimplePhysicalEntity spe1 = createSPEFromActor(model, actors.get(0));
+        SimplePhysicalEntity spe2 = createSPEFromActor(model, actors.get(1));
+
+        ComplexAssembly complexAssembly = create(ComplexAssembly.class, CTDUtil.createProcessId(ixn, actors.get(0)));
+        transferNames(ixn, complexAssembly);
+        complexAssembly.addLeft(spe1);
+        complexAssembly.addLeft(spe2);
+        complexAssembly.addRight(complex);
+        complexAssembly.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
+        model.add(complexAssembly);
+
+        return complexAssembly;
     }
 
     private Process createDegradationReaction(Model model, ActorType actor, String processId) {
@@ -469,8 +494,7 @@ public class CTDInteractionConverter extends Converter {
         if((form == null || form.isEmpty()) && actorTypeType.equals(ActorTypeType.GENE)) {
             form = "protein";
         }
-        // By this time we should have assign a form
-        assert form != null;
+        if(form == null) { form = "chemical"; }
         String refId = CTDUtil.createRefRDFId(form.toUpperCase(), actorTypeId);
 
         EntityReference entityReference = (EntityReference) model.getByID(refId);
