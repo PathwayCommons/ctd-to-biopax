@@ -261,23 +261,27 @@ public class CTDInteractionConverter extends Converter {
         assert actors.size() >= 2;
 
         Complex complex = createComplex(model, ixn);
-        SimplePhysicalEntity spe1 = createSPEFromActor(model, actors.get(0));
-        SimplePhysicalEntity spe2 = createSPEFromActor(model, actors.get(1));
+        SimplePhysicalEntity spe1 = createSPEFromActor(model, actors.get(0), false);
+        SimplePhysicalEntity spe2 = createSPEFromActor(model, actors.get(1), false);
 
-        ComplexAssembly complexAssembly = create(ComplexAssembly.class, CTDUtil.createProcessId(ixn, actors.get(0)));
-        transferNames(ixn, complexAssembly);
-        complexAssembly.addLeft(spe1);
-        complexAssembly.addLeft(spe2);
-        complexAssembly.addRight(complex);
-        complexAssembly.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
-        model.add(complexAssembly);
+        String processId = CTDUtil.createProcessId(ixn, actors.get(0));
+        ComplexAssembly complexAssembly = (ComplexAssembly) model.getByID(processId);
+        if(complexAssembly == null) {
+            complexAssembly = create(ComplexAssembly.class, processId);
+            transferNames(ixn, complexAssembly);
+            complexAssembly.addLeft(spe1);
+            complexAssembly.addLeft(spe2);
+            complexAssembly.addRight(complex);
+            complexAssembly.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
+            model.add(complexAssembly);
+        }
 
         return complexAssembly;
     }
 
     private Process createDegradationReaction(Model model, ActorType actor, String processId) {
         Degradation degradation = create(Degradation.class, processId);
-        SimplePhysicalEntity par = createSPEFromActor(model, actor);
+        SimplePhysicalEntity par = createSPEFromActor(model, actor, false);
         degradation.addLeft(par);
         degradation.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
 
@@ -288,7 +292,7 @@ public class CTDInteractionConverter extends Converter {
 
     private Process createSynthesisReaction(Model model, ActorType actor, String processId) {
         BiochemicalReaction biochemicalReaction = create(BiochemicalReaction.class, processId);
-        SimplePhysicalEntity rightPar = createSPEFromActor(model, actor);
+        SimplePhysicalEntity rightPar = createSPEFromActor(model, actor, false);
 
         biochemicalReaction.addRight(rightPar);
         biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
@@ -298,9 +302,9 @@ public class CTDInteractionConverter extends Converter {
     }
 
     private Process createTransportReaction(Model model, ActorType actor, String processId, String leftLoc, String rightLoc) {
-        Conversion transport = create(BiochemicalReaction.class, processId);
-        SimplePhysicalEntity leftPar = createSPEFromActor(model, actor);
-        SimplePhysicalEntity rightPar = createSPEFromActor(model, actor);
+        Transport transport = create(Transport.class, processId);
+        SimplePhysicalEntity leftPar = createSPEFromActor(model, actor, false);
+        SimplePhysicalEntity rightPar = createSPEFromActor(model, actor, true);
         transport.addLeft(leftPar);
         transport.addRight(rightPar);
         transport.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
@@ -334,8 +338,8 @@ public class CTDInteractionConverter extends Converter {
 
     private Process createModificationReaction(Model model, ActorType actor, String processId, String leftTerm, String rightTerm) {
         BiochemicalReaction biochemicalReaction = create(BiochemicalReaction.class, processId);
-        SimplePhysicalEntity leftPar = createSPEFromActor(model, actor);
-        SimplePhysicalEntity rightPar = createSPEFromActor(model, actor);
+        SimplePhysicalEntity leftPar = createSPEFromActor(model, actor, leftTerm != null);
+        SimplePhysicalEntity rightPar = createSPEFromActor(model, actor, rightTerm != null);
         biochemicalReaction.addLeft(leftPar);
         biochemicalReaction.addRight(rightPar);
         biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
@@ -386,7 +390,7 @@ public class CTDInteractionConverter extends Converter {
                         + ixn.getId() + ". Created an incomplete template reaction.");
                 break;
             default:
-                SimplePhysicalEntity actorEntity = createSPEFromActor(model, actor);
+                SimplePhysicalEntity actorEntity = createSPEFromActor(model, actor, false);
                 templateReaction.addProduct(actorEntity);
                 model.add(templateReaction);
                 transferNames(ixn, templateReaction);
@@ -425,14 +429,14 @@ public class CTDInteractionConverter extends Converter {
                 }
                 break;
             default: // If not an IXN, then it is a physical entity
-                controllers.add(createSPEFromActor(model, actor));
+                controllers.add(createSPEFromActor(model, actor, false));
                 break;
         }
 
         return controllers;
     }
 
-    private SimplePhysicalEntity createSPEFromActor(Model model, ActorType actor) {
+    private SimplePhysicalEntity createSPEFromActor(Model model, ActorType actor, boolean createNewInstance) {
         SimplePhysicalEntity spe;
         ActorTypeType aType = CTDUtil.extractActorTypeType(actor);
 
@@ -447,10 +451,10 @@ public class CTDInteractionConverter extends Converter {
 
                 Class<? extends SimplePhysicalEntity> eClass = geneForm.getEntityClass();
                 Class<? extends EntityReference> refClass = geneForm.getReferenceClass();
-                spe = createEntityFromActor(model, actor, eClass, refClass);
+                spe = createEntityFromActor(model, actor, eClass, refClass, createNewInstance);
                 break;
             case CHEMICAL:
-                spe = createEntityFromActor(model, actor, SmallMolecule.class, SmallMoleculeReference.class);
+                spe = createEntityFromActor(model, actor, SmallMolecule.class, SmallMoleculeReference.class, createNewInstance);
                 break;
         }
 
@@ -472,7 +476,7 @@ public class CTDInteractionConverter extends Converter {
 
         String cName = "";
         for (ActorType actorType : ixnType.getActor()) {
-            SimplePhysicalEntity speFromActor = createSPEFromActor(model, actorType);
+            SimplePhysicalEntity speFromActor = createSPEFromActor(model, actorType, true);
             cName += speFromActor.getDisplayName() + "/";
             complex.addComponent(speFromActor);
         }
@@ -495,10 +499,11 @@ public class CTDInteractionConverter extends Converter {
             Model model,
             ActorType actorType,
             Class<? extends SimplePhysicalEntity> entityClass,
-            Class<? extends EntityReference> referenceClass
+            Class<? extends EntityReference> referenceClass,
+            boolean createNewEntity
     ) {
         String actorTypeId = actorType.getId();
-        String entityId = actorTypeId + "_" + actorType.getParentid() + "_" + UUID.randomUUID();
+
         String form = actorType.getForm();
         ActorTypeType actorTypeType = CTDUtil.extractActorTypeType(actorType);
         // Override all forms of chemicals (none || analog)
@@ -512,6 +517,9 @@ public class CTDInteractionConverter extends Converter {
         if(form == null) { form = "chemical"; }
         String refId = CTDUtil.createRefRDFId(form.toUpperCase(), actorTypeId);
 
+        String entityId = CTDUtil.sanitizeId(actorTypeId + "_" + form
+                + (createNewEntity ? "_" + UUID.randomUUID() : ""));
+
         EntityReference entityReference = (EntityReference) model.getByID(refId);
         if(entityReference == null) {
             entityReference = create(referenceClass, refId);
@@ -519,10 +527,13 @@ public class CTDInteractionConverter extends Converter {
             model.add(entityReference);
         }
 
-        SimplePhysicalEntity simplePhysicalEntity = create(entityClass, entityId);
-        transferNames(actorType, simplePhysicalEntity);
-        simplePhysicalEntity.setEntityReference(entityReference);
-        model.add(simplePhysicalEntity);
+        SimplePhysicalEntity simplePhysicalEntity = (SimplePhysicalEntity) model.getByID(entityId);
+        if(simplePhysicalEntity == null) {
+            simplePhysicalEntity = create(entityClass, entityId);
+            transferNames(actorType, simplePhysicalEntity);
+            simplePhysicalEntity.setEntityReference(entityReference);
+            model.add(simplePhysicalEntity);
+        }
 
         return simplePhysicalEntity;
     }

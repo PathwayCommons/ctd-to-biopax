@@ -11,10 +11,9 @@ import org.biopax.paxtools.model.level3.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.UUID;
 
 public class CTDGeneConverter extends Converter {
-    private static Log log = LogFactory.getLog(CTDChemicalConverter.class);
+    private static Log log = LogFactory.getLog(CTDGeneConverter.class);
     private static final String INTRA_FIELD_SEPARATOR = "\\|";
 
     @Override
@@ -111,7 +110,6 @@ public class CTDGeneConverter extends Converter {
     }
 
     private Xref createXref(Model model, Class<? extends Xref> xrefClass, String db, String id) {
-        //String rdfId = CTDUtil.sanitizeId(xrefClass.getSimpleName().toLowerCase() + "_" + db + ":" + id + "_" + UUID.randomUUID());
         String rdfId = CTDUtil.sanitizeId(xrefClass.getSimpleName().toLowerCase() + "_" + db + ":" + id );
         Xref xref = (Xref) model.getByID(rdfId);
         if(xref == null) {

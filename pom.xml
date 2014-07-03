@@ -11,7 +11,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <paxtools.version>4.2.1</paxtools.version>
+      <paxtools.version>4.3.0-SNAPSHOT</paxtools.version>
       <slf4j.version>1.6.4</slf4j.version>
   </properties>
 
@@ -32,6 +32,12 @@
         <dependency>
             <groupId>org.biopax.paxtools</groupId>
             <artifactId>paxtools-core</artifactId>
+            <version>${paxtools.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.biopax.paxtools</groupId>
+            <artifactId>paxtools-trove</artifactId>
             <version>${paxtools.version}</version>
         </dependency>
 

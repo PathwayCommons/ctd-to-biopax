@@ -101,7 +101,7 @@ public class CTDUtil {
     }
 
     public static String createProcessId(IxnType ixnType, ActorType actor) {
-        return sanitizeId("process_" + extractAxnCode(extractAxn(ixnType)) + "_" + UUID.randomUUID());
+        return sanitizeId("process_" + extractAxnCode(extractAxn(ixnType)) + "_" + extractName(actor));
     }
 
     public static String locationToId(String location) {
