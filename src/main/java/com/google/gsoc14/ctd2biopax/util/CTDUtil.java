@@ -15,14 +15,14 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
 
 public class CTDUtil {
     private static Log log = LogFactory.getLog(CTDUtil.class);
     private static ObjectFactory ctdFactory = new ObjectFactory();
 
     public static String extractName(IxnType ixn) {
-        String actionStr = ixn.getAxn().iterator().next().getValue();
+        List<AxnType> axns = ixn.getAxn();
+        String actionStr = axns.isEmpty() ? "n/a" : axns.iterator().next().getValue();
 
         String completeName = "";
         switch (extractAxnCode(ixn)) {
@@ -37,9 +37,13 @@ public class CTDUtil {
                 completeName = completeName.substring(0, completeName.length()-2);
                 break;
             default:
-                String fName = CTDUtil.extractName(ixn.getActor().get(0));
-                String sName = CTDUtil.extractName(ixn.getActor().get(1));
-                completeName = fName + " " + actionStr + " " + sName;
+                if(ixn.getActor().size() > 0) {
+                    String fName = CTDUtil.extractName(ixn.getActor().get(0));
+                    String sName = CTDUtil.extractName(ixn.getActor().get(1));
+                    completeName = fName + " " + actionStr + " " + sName;
+                } else {
+                    completeName = "n/a";
+                }
         }
 
         return completeName;
@@ -72,7 +76,11 @@ public class CTDUtil {
     }
 
     public static AxnCode extractAxnCode(IxnType ixn) {
-        return extractAxnCode(extractAxn(ixn));
+        if(ixn.getAxn().isEmpty()) {
+            return AxnCode.RXN;
+        } else {
+            return extractAxnCode(extractAxn(ixn));
+        }
     }
 
     public static IxnType convertActorToIxn(ActorType actor) {

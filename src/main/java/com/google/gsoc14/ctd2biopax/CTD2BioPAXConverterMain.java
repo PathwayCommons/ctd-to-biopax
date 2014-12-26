@@ -65,6 +65,8 @@ public class CTD2BioPAXConverterMain {
                 log.info("Removed " + removed.size() + " tangling entity references from the model.");
             }
 
+            // Setting the xmlbase
+            finalModel.setXmlBase(Converter.sharedXMLBase);
             String outputFile = commandLine.getOptionValue("o");
             log.info("Done with the conversions. Converting the final model to OWL: " + outputFile);
             FileOutputStream outputStream = new FileOutputStream(outputFile);

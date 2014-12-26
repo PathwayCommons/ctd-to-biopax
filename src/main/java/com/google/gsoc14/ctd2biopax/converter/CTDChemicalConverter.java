@@ -48,7 +48,7 @@ public class CTDChemicalConverter extends Converter {
             String[] dbIds = nextLine[8].split(INTRA_FIELD_SEPARATOR);
 
             String rdfId = CTDUtil.createRefRDFId("CHEMICAL", chemicalId);
-            SmallMoleculeReference smallMolecule = (SmallMoleculeReference) model.getByID(rdfId);
+            SmallMoleculeReference smallMolecule = (SmallMoleculeReference) model.getByID(completeId(rdfId));
             if(smallMolecule != null) {
                 log.warn("We already added chemical " + chemicalId + ". Skipping it.");
                 continue;

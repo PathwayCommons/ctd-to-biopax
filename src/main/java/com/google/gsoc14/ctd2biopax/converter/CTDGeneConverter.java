@@ -75,7 +75,7 @@ public class CTDGeneConverter extends Converter {
         String[] uniprotIds = tokens[7].split(INTRA_FIELD_SEPARATOR);
 
         String uri = CTDUtil.createRefRDFId(geneForm.toString(), "GENE:" + geneID);
-        EntityReference entityReference = (EntityReference) model.getByID(uri);
+        EntityReference entityReference = (EntityReference) model.getByID(completeId(uri));
         if(entityReference != null) {
             log.warn("Already had the gene " + geneID + ". Skipping it.");
             return null;
@@ -111,7 +111,7 @@ public class CTDGeneConverter extends Converter {
 
     private Xref createXref(Model model, Class<? extends Xref> xrefClass, String db, String id) {
         String rdfId = CTDUtil.sanitizeId(xrefClass.getSimpleName().toLowerCase() + "_" + db + ":" + id );
-        Xref xref = (Xref) model.getByID(rdfId);
+        Xref xref = (Xref) model.getByID(completeId(rdfId));
         if(xref == null) {
             xref = create(xrefClass, rdfId);
             xref.setDb(db);

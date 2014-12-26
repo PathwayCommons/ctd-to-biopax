@@ -96,7 +96,7 @@ public class CTDInteractionConverter extends Converter {
         String taxonName = taxonType.getValue();
         String orgTaxId = taxonType.getId();
         String taxonId = "taxon_pathway_" + orgTaxId;
-        Pathway pathway = (Pathway) model.getByID(taxonId);
+        Pathway pathway = (Pathway) model.getByID(completeId(taxonId));
         if(pathway == null) {
             pathway = create(Pathway.class, taxonId);
             assignName(taxonName + " pathway", pathway);
@@ -152,7 +152,7 @@ public class CTDInteractionConverter extends Converter {
         AxnCode axnCode = CTDUtil.extractAxnCode(ixn);
         String processId = CTDUtil.createProcessId(ixn, actor);
 
-        Process process = (Process) model.getByID(processId);
+        Process process = (Process) model.getByID(completeId(processId));
         if(process != null)
             return process;
 
@@ -265,7 +265,7 @@ public class CTDInteractionConverter extends Converter {
         SimplePhysicalEntity spe2 = createSPEFromActor(model, actors.get(1), false);
 
         String processId = CTDUtil.createProcessId(ixn, actors.get(0));
-        ComplexAssembly complexAssembly = (ComplexAssembly) model.getByID(processId);
+        ComplexAssembly complexAssembly = (ComplexAssembly) model.getByID(completeId(processId));
         if(complexAssembly == null) {
             complexAssembly = create(ComplexAssembly.class, processId);
             transferNames(ixn, complexAssembly);
@@ -325,7 +325,7 @@ public class CTDInteractionConverter extends Converter {
     private CellularLocationVocabulary createCellularLocation(Model model, String location) {
         String locId = CTDUtil.locationToId(location);
 
-        CellularLocationVocabulary cellularLocationVocabulary = (CellularLocationVocabulary) model.getByID(locId);
+        CellularLocationVocabulary cellularLocationVocabulary = (CellularLocationVocabulary) model.getByID(completeId(locId));
         if(cellularLocationVocabulary == null) {
             cellularLocationVocabulary = create(CellularLocationVocabulary.class, locId);
             cellularLocationVocabulary.addTerm(location);
@@ -520,14 +520,14 @@ public class CTDInteractionConverter extends Converter {
         String entityId = CTDUtil.sanitizeId(actorTypeId + "_" + form
                 + (createNewEntity ? "_" + UUID.randomUUID() : ""));
 
-        EntityReference entityReference = (EntityReference) model.getByID(refId);
+        EntityReference entityReference = (EntityReference) model.getByID(completeId(refId));
         if(entityReference == null) {
             entityReference = create(referenceClass, refId);
             transferNames(actorType, entityReference);
             model.add(entityReference);
         }
 
-        SimplePhysicalEntity simplePhysicalEntity = (SimplePhysicalEntity) model.getByID(entityId);
+        SimplePhysicalEntity simplePhysicalEntity = (SimplePhysicalEntity) model.getByID(completeId(entityId));
         if(simplePhysicalEntity == null) {
             simplePhysicalEntity = create(entityClass, entityId);
             transferNames(actorType, simplePhysicalEntity);
