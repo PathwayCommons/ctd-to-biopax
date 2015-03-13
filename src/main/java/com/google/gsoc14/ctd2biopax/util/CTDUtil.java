@@ -137,4 +137,8 @@ public class CTDUtil {
     public static String createRefRDFId(String form, String actorId) {
         return CTDUtil.sanitizeId("ref_" + form + "_" + actorId);
     }
+
+    public static String createTaxonomyId(String taxId) {
+        return "taxon_pathway_" + taxId;
+    }
 }

@@ -4,6 +4,7 @@ import com.google.gsoc14.ctd2biopax.converter.CTDChemicalConverter;
 import com.google.gsoc14.ctd2biopax.converter.CTDGeneConverter;
 import com.google.gsoc14.ctd2biopax.converter.CTDInteractionConverter;
 import com.google.gsoc14.ctd2biopax.converter.Converter;
+import com.google.gsoc14.ctd2biopax.util.CTDUtil;
 import org.apache.commons.cli.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,6 +35,7 @@ public class CTD2BioPAXConverterMain {
                 .addOption("g", "gene", true, "CTD gene vocabulary (CSV) [optional]")
                 .addOption("c", "chemical", true, "CTD chemical vocabulary (CSV) [optional]")
                 .addOption("o", "output", true, "Output (BioPAX file) [required]")
+                .addOption("t", "taxonomy", true, "Taxonomy (e.g. '9606' for human) [optional]")
                 .addOption("r", "remove-tangling", false, "Remove tangling entities for clean-up [optional]")
         ;
 
@@ -70,7 +72,18 @@ public class CTD2BioPAXConverterMain {
             String outputFile = commandLine.getOptionValue("o");
             log.info("Done with the conversions. Converting the final model to OWL: " + outputFile);
             FileOutputStream outputStream = new FileOutputStream(outputFile);
-            simpleIOHandler.convertToOWL(finalModel, outputStream);
+
+            if(commandLine.hasOption("t")) {
+                String taxonomy = commandLine.getOptionValue("t");
+                log.info("Filtering taxonomy for: " + taxonomy);
+                simpleIOHandler.convertToOWL(
+                        finalModel,
+                        outputStream,
+                        finalModel.getXmlBase() + CTDUtil.createTaxonomyId(taxonomy)
+                );
+            } else {
+                simpleIOHandler.convertToOWL(finalModel, outputStream);
+            }
             outputStream.close();
             log.info("All done.");
         } catch (ParseException e) {

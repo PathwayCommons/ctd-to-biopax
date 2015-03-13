@@ -95,7 +95,8 @@ public class CTDInteractionConverter extends Converter {
     private void assignReactionToPathway(Model model, Process process, TaxonType taxonType) {
         String taxonName = taxonType.getValue();
         String orgTaxId = taxonType.getId();
-        String taxonId = "taxon_pathway_" + orgTaxId;
+        //String taxonId = "taxon_pathway_" + orgTaxId;
+        String taxonId = CTDUtil.createTaxonomyId(orgTaxId);
         Pathway pathway = (Pathway) model.getByID(completeId(taxonId));
         if(pathway == null) {
             pathway = create(Pathway.class, taxonId);
