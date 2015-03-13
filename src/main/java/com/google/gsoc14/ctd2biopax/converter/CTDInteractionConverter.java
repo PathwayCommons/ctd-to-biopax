@@ -115,13 +115,14 @@ public class CTDInteractionConverter extends Converter {
             model.add(bioSource);
             model.add(pathway);
         }
-        pathway.addPathwayComponent(process);
         addReactionToPathwayByTraversing(model, process, pathway);
-
     }
 
-    private void addReactionToPathwayByTraversing(Model model, Process control, Pathway pathway) {
-        // Propagate pathway assignments
+    private void addReactionToPathwayByTraversing(Model model, Process process, Pathway pathway) {
+        // Assume that this process is not part of the pathway (yet)
+        pathway.addPathwayComponent(process);
+
+        // Now propagate pathway assignments down the line
         final Pathway finalPathway = pathway;
         Traverser traverser = new Traverser(SimpleEditorMap.get(BioPAXLevel.L3), new Visitor() {
             @Override
@@ -131,7 +132,7 @@ public class CTDInteractionConverter extends Converter {
                 }
             }
         });
-        traverser.traverse(control, model);
+        traverser.traverse(process, model);
     }
 
     private void assignControlVocabulary(Control control, AxnType action) {
