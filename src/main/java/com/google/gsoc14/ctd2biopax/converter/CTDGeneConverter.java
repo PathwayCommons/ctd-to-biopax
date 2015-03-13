@@ -90,7 +90,7 @@ public class CTDGeneConverter extends Converter {
         }
 
         if(!geneName.isEmpty()) { entityReference.addComment(geneName); }
-        entityReference.addXref(createXref(model, UnificationXref.class, "NCBI Gene", geneID));
+        entityReference.addXref(createXref(model, RelationshipXref.class, "NCBI Gene", geneID));
         // Let's skip other NCBI gene references, they inflate the model
         //addXrefsFromArray(model, entityReference, RelationshipXref.class, "NCBI Gene", altGeneIds);
         addXrefsFromArray(model, entityReference, RelationshipXref.class, "BioGRID", biogridIds);
