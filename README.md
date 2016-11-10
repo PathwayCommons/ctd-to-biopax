@@ -1,5 +1,5 @@
 # ctd-to-biopax
-Originated from https://bitbucket.org/armish/gsoc14 and will continue here.
+Originated from https://bitbucket.org/armish/gsoc14 and will continue here (ToDo).
 
 ## Comparative Toxicogenomics Database (CTD) to BioPAX Level3 data converter
 
@@ -30,7 +30,7 @@ Each entity reference in this converted models includes all the external referne
 From the chemical vocabulary, `SmallMoleculeReference`s are produced;
 and from the gene vocabulary, various types of references are produced for corresponding CTD gene forms: `ProteinReference`, `DnaReference`, `RnaReference`, `DnaRegionReference` and `RnaRegionReference`.
 
-The interactions file contains all detailed interactions between chemicals and genes, but no background information on the chemical/gene entities.
+The interactions file contains all detailed interactions between chemicals and g to [Goal2-CTD2BioPAX/ctd2biopax](https://bitbucket.org/armish/gsoc14/src/default/Goal2-CTD2BioPAX/ctd2biopax/?at=default)enes, but no background information on the chemical/gene entities.
 Therefore it is necessary to convert all these files and merge these models into one in order to get a properly annotated BioPAX model.
 The converter exactly does that by making sure that the entity references from the vocabulary files match with the ones produced from the interactions file.
 This allows filling in the gaps and annotations of the entities in the final converted model.
@@ -42,11 +42,11 @@ The automatically generated Java classes that correspond to this schema can be f
 The simple flow that show how the conversion happens is available as the main executable class: [CTD2BioPAXConverterMain.java](https://bitbucket.org/armish/gsoc14/src/default/Goal2-CTD2BioPAX/ctd2biopax/src/main/java/com/google/gsoc14/ctd2biopax/CTD2BioPAXConverterMain.java?at=default).
 
 ### Usage
-Check out the latest code and change your directory to [Goal2-CTD2BioPAX/ctd2biopax](https://bitbucket.org/armish/gsoc14/src/default/Goal2-CTD2BioPAX/ctd2biopax/?at=default):
+Check out (clone) and change the project directory:
 
-	$ cd Goal2-CTD2BioPAX/ctd2biopax
+	$ cd ctd-to-biopax
 
-and do a clean mvn install:
+build with Maven:
 
 	$ mvn clean install assembly:single
 
