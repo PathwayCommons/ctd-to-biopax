@@ -1,7 +1,7 @@
-package com.google.gsoc14.ctd2biopax.converter;
+package org.ctdbase.converter;
 
 import au.com.bytecode.opencsv.CSVReader;
-import com.google.gsoc14.ctd2biopax.util.CTDUtil;
+import org.ctdbase.util.CtdUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.biopax.paxtools.model.Model;
@@ -47,7 +47,7 @@ public class CTDChemicalConverter extends Converter {
             String[] synonyms = nextLine[7].split(INTRA_FIELD_SEPARATOR);
             String[] dbIds = nextLine[8].split(INTRA_FIELD_SEPARATOR);
 
-            String rdfId = CTDUtil.createRefRDFId("CHEMICAL", chemicalId);
+            String rdfId = CtdUtil.createRefRDFId("CHEMICAL", chemicalId);
             SmallMoleculeReference smallMolecule = (SmallMoleculeReference) model.getByID(completeId(rdfId));
             if(smallMolecule != null) {
                 log.warn("We already added chemical " + chemicalId + ". Skipping it.");
@@ -90,7 +90,7 @@ public class CTDChemicalConverter extends Converter {
 
     private RelationshipXref createMeshXref(Model model, String parentID) {
         String[] tokens = parentID.split(":");
-        String uri = CTDUtil.sanitizeId("rxref_" + parentID + "_" + UUID.randomUUID());
+        String uri = CtdUtil.sanitizeId("rxref_" + parentID + "_" + UUID.randomUUID());
         RelationshipXref rxref = create(RelationshipXref.class, uri);
         rxref.setDb("MeSH 2013");
         rxref.setId(tokens[1]);
@@ -99,7 +99,7 @@ public class CTDChemicalConverter extends Converter {
     }
 
     private RelationshipXref createCASXref(Model model, String casRN) {
-        String uri = CTDUtil.sanitizeId("rxref_" + casRN + "_" + UUID.randomUUID());
+        String uri = CtdUtil.sanitizeId("rxref_" + casRN + "_" + UUID.randomUUID());
         RelationshipXref rxref = create(RelationshipXref.class, uri);
         rxref.setDb("CAS");
         rxref.setId(casRN);
@@ -108,7 +108,7 @@ public class CTDChemicalConverter extends Converter {
     }
 
     private RelationshipXref createDrugBankXref(Model model, String dbId) {
-        String uri = CTDUtil.sanitizeId("rxref_" + dbId + "_" + UUID.randomUUID());
+        String uri = CtdUtil.sanitizeId("rxref_" + dbId + "_" + UUID.randomUUID());
         RelationshipXref rxref = create(RelationshipXref.class, uri);
         rxref.setDb("DrugBank");
         rxref.setId(dbId);
@@ -118,7 +118,7 @@ public class CTDChemicalConverter extends Converter {
 
     private UnificationXref createUnificationXrefFromId(Model model, String chemicalId) {
         String[] tokens = chemicalId.split(":");
-        String uri = CTDUtil.sanitizeId("rxref_" + chemicalId + "_" + UUID.randomUUID());
+        String uri = CtdUtil.sanitizeId("rxref_" + chemicalId + "_" + UUID.randomUUID());
         UnificationXref xref = create(UnificationXref.class, uri);
         xref.setDb("MeSH 2013");
         xref.setId(tokens[1]);

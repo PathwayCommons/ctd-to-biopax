@@ -1,8 +1,8 @@
-package com.google.gsoc14.ctd2biopax.converter;
+package org.ctdbase.converter;
 
 import au.com.bytecode.opencsv.CSVReader;
-import com.google.gsoc14.ctd2biopax.util.CTDUtil;
-import com.google.gsoc14.ctd2biopax.util.model.GeneForm;
+import org.ctdbase.util.CtdUtil;
+import org.ctdbase.util.model.GeneForm;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.biopax.paxtools.model.Model;
@@ -74,7 +74,7 @@ public class CTDGeneConverter extends Converter {
         String[] pharmGKBIds = tokens[6].split(INTRA_FIELD_SEPARATOR);
         String[] uniprotIds = tokens[7].split(INTRA_FIELD_SEPARATOR);
 
-        String uri = CTDUtil.createRefRDFId(geneForm.toString(), "GENE:" + geneID);
+        String uri = CtdUtil.createRefRDFId(geneForm.toString(), "GENE:" + geneID);
         EntityReference entityReference = (EntityReference) model.getByID(completeId(uri));
         if(entityReference != null) {
             log.warn("Already had the gene " + geneID + ". Skipping it.");
@@ -110,7 +110,7 @@ public class CTDGeneConverter extends Converter {
     }
 
     private Xref createXref(Model model, Class<? extends Xref> xrefClass, String db, String id) {
-        String rdfId = CTDUtil.sanitizeId(xrefClass.getSimpleName().toLowerCase() + "_" + db + ":" + id );
+        String rdfId = CtdUtil.sanitizeId(xrefClass.getSimpleName().toLowerCase() + "_" + db + ":" + id );
         Xref xref = (Xref) model.getByID(completeId(rdfId));
         if(xref == null) {
             xref = create(xrefClass, rdfId);

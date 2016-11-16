@@ -1,4 +1,4 @@
-package com.google.gsoc14.ctd2biopax.util.model;
+package org.ctdbase.util.model;
 
 public enum AxnCode {
 

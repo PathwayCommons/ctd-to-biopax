@@ -1,10 +1,10 @@
-package com.google.gsoc14.ctd2biopax;
+package org.ctdbase;
 
-import com.google.gsoc14.ctd2biopax.converter.CTDChemicalConverter;
-import com.google.gsoc14.ctd2biopax.converter.CTDGeneConverter;
-import com.google.gsoc14.ctd2biopax.converter.CTDInteractionConverter;
-import com.google.gsoc14.ctd2biopax.converter.Converter;
-import com.google.gsoc14.ctd2biopax.util.CTDUtil;
+import org.ctdbase.converter.CTDChemicalConverter;
+import org.ctdbase.converter.CTDGeneConverter;
+import org.ctdbase.converter.CTDInteractionConverter;
+import org.ctdbase.converter.Converter;
+import org.ctdbase.util.CtdUtil;
 import org.apache.commons.cli.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,9 +23,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Set;
 
-public class CTD2BioPAXConverterMain {
-    private static Log log = LogFactory.getLog(CTD2BioPAXConverterMain.class);
-    private static final String helpText = CTD2BioPAXConverterMain.class.getSimpleName();
+public class CtdToBiopaxConverter {
+    private static Log log = LogFactory.getLog(CtdToBiopaxConverter.class);
+    private static final String helpText = CtdToBiopaxConverter.class.getSimpleName();
 
     public static void main( String[] args ) {
         final CommandLineParser clParser = new GnuParser();
@@ -79,7 +79,7 @@ public class CTD2BioPAXConverterMain {
                 simpleIOHandler.convertToOWL(
                         finalModel,
                         outputStream,
-                        finalModel.getXmlBase() + CTDUtil.createTaxonomyId(taxonomy)
+                        finalModel.getXmlBase() + CtdUtil.createTaxonomyId(taxonomy)
                 );
             } else {
                 simpleIOHandler.convertToOWL(finalModel, outputStream);

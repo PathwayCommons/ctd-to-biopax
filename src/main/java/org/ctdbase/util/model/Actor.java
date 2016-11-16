@@ -1,13 +1,13 @@
-package com.google.gsoc14.ctd2biopax.util.model;
+package org.ctdbase.util.model;
 
-public enum ActorTypeType {
+public enum Actor {
     IXN("interaction"),
     GENE("gene"),
     CHEMICAL("chemical");
 
     private final String description;
 
-    ActorTypeType(String description) {
+    Actor(String description) {
         this.description = description;
     }
 

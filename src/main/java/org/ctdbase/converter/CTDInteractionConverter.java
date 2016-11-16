@@ -1,9 +1,9 @@
-package com.google.gsoc14.ctd2biopax.converter;
+package org.ctdbase.converter;
 
-import com.google.gsoc14.ctd2biopax.util.CTDUtil;
-import com.google.gsoc14.ctd2biopax.util.model.ActorTypeType;
-import com.google.gsoc14.ctd2biopax.util.model.AxnCode;
-import com.google.gsoc14.ctd2biopax.util.model.GeneForm;
+import org.ctdbase.util.CtdUtil;
+import org.ctdbase.util.model.Actor;
+import org.ctdbase.util.model.AxnCode;
+import org.ctdbase.util.model.GeneForm;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.biopax.paxtools.controller.PropertyEditor;
@@ -75,7 +75,7 @@ public class CTDInteractionConverter extends Converter {
 
         Process topProcess;
         // Binding reactions are special, don't want controls for them -- so let's back roll
-        if(CTDUtil.extractAxnCode(ixn).equals(AxnCode.B)) {
+        if(CtdUtil.extractAxnCode(ixn).equals(AxnCode.B)) {
             control.removeControlled(process);
             model.remove(control);
             topProcess = process;
@@ -96,7 +96,7 @@ public class CTDInteractionConverter extends Converter {
         String taxonName = taxonType.getValue();
         String orgTaxId = taxonType.getId();
         //String taxonId = "taxon_pathway_" + orgTaxId;
-        String taxonId = CTDUtil.createTaxonomyId(orgTaxId);
+        String taxonId = CtdUtil.createTaxonomyId(orgTaxId);
         Pathway pathway = (Pathway) model.getByID(completeId(taxonId));
         if(pathway == null) {
             pathway = create(Pathway.class, taxonId);
@@ -126,7 +126,6 @@ public class CTDInteractionConverter extends Converter {
         // Now propagate pathway assignments down the line
         final Pathway finalPathway = pathway;
         Traverser traverser = new Traverser(SimpleEditorMap.get(BioPAXLevel.L3), new Visitor() {
-            @Override
             public void visit(BioPAXElement domain, Object range, Model model, PropertyEditor<?, ?> editor) {
                 if(range != null && range instanceof Process) {
                     finalPathway.addPathwayComponent((Process) range);
@@ -151,8 +150,8 @@ public class CTDInteractionConverter extends Converter {
     }
 
     private Process createProcessFromAction(Model model, IxnType ixn, ActorType actor) {
-        AxnCode axnCode = CTDUtil.extractAxnCode(ixn);
-        String processId = CTDUtil.createProcessId(ixn, actor);
+        AxnCode axnCode = CtdUtil.extractAxnCode(ixn);
+        String processId = CtdUtil.createProcessId(ixn, actor);
 
         Process process = (Process) model.getByID(completeId(processId));
         if(process != null)
@@ -219,7 +218,7 @@ public class CTDInteractionConverter extends Converter {
                 Pathway pathway = create(Pathway.class, processId);
                 transferNames(ixn, pathway);
                 model.add(pathway);
-                IxnType newIxn = CTDUtil.convertActorToIxn(actor);
+                IxnType newIxn = CtdUtil.convertActorToIxn(actor);
                 addReactionToPathwayByTraversing(model, convertInteraction(model, newIxn), pathway);
                 process = pathway;
                 break;
@@ -266,7 +265,7 @@ public class CTDInteractionConverter extends Converter {
         SimplePhysicalEntity spe1 = createSPEFromActor(model, actors.get(0), false);
         SimplePhysicalEntity spe2 = createSPEFromActor(model, actors.get(1), false);
 
-        String processId = CTDUtil.createProcessId(ixn, actors.get(0));
+        String processId = CtdUtil.createProcessId(ixn, actors.get(0));
         ComplexAssembly complexAssembly = (ComplexAssembly) model.getByID(completeId(processId));
         if(complexAssembly == null) {
             complexAssembly = create(ComplexAssembly.class, processId);
@@ -325,7 +324,7 @@ public class CTDInteractionConverter extends Converter {
     }
 
     private CellularLocationVocabulary createCellularLocation(Model model, String location) {
-        String locId = CTDUtil.locationToId(location);
+        String locId = CtdUtil.locationToId(location);
 
         CellularLocationVocabulary cellularLocationVocabulary = (CellularLocationVocabulary) model.getByID(completeId(locId));
         if(cellularLocationVocabulary == null) {
@@ -346,7 +345,7 @@ public class CTDInteractionConverter extends Converter {
         biochemicalReaction.addRight(rightPar);
         biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
 
-        if(CTDUtil.extractActorTypeType(actor).equals(ActorTypeType.CHEMICAL)) {
+        if(CtdUtil.extractActor(actor).equals(Actor.CHEMICAL)) {
             if(leftTerm != null) {
                 leftPar.setDisplayName(leftPar.getDisplayName() + " (" + leftTerm + ")");
             }
@@ -381,18 +380,18 @@ public class CTDInteractionConverter extends Converter {
         return feature;
     }
 
-    private Process createExpressionReaction(Model model, IxnType ixn, ActorType actor, String processId) {
+    private Process createExpressionReaction(Model model, IxnType ixn, ActorType actorType, String processId) {
         TemplateReaction templateReaction = create(TemplateReaction.class, processId);
         templateReaction.setTemplateDirection(TemplateDirectionType.FORWARD); // Expression is always forward
-        ActorTypeType actorTypeType = CTDUtil.extractActorTypeType(actor);
-        switch (actorTypeType) {
+        Actor actor = CtdUtil.extractActor(actorType);
+        switch (actor) {
             case IXN:
                 log.error("Found an expression reaction with the second " +
                         "actor also a reaction, which is ambigous: #"
                         + ixn.getId() + ". Created an incomplete template reaction.");
                 break;
             default:
-                SimplePhysicalEntity actorEntity = createSPEFromActor(model, actor, false);
+                SimplePhysicalEntity actorEntity = createSPEFromActor(model, actorType, false);
                 templateReaction.addProduct(actorEntity);
                 model.add(templateReaction);
                 transferNames(ixn, templateReaction);
@@ -412,11 +411,11 @@ public class CTDInteractionConverter extends Converter {
 
     private Collection<Controller> createControlEntityFromActor(Model model, ActorType actor) {
         HashSet<Controller> controllers = new HashSet<Controller>();
-        ActorTypeType aType = CTDUtil.extractActorTypeType(actor);
+        Actor aType = CtdUtil.extractActor(actor);
         switch (aType) {
             case IXN:
-                IxnType ixnType = CTDUtil.convertActorToIxn(actor);
-                switch(CTDUtil.extractAxnCode(ixnType)) {
+                IxnType ixnType = CtdUtil.convertActorToIxn(actor);
+                switch(CtdUtil.extractAxnCode(ixnType)) {
                     case B:
                         controllers.add(createComplex(model, ixnType));
                         break;
@@ -440,7 +439,7 @@ public class CTDInteractionConverter extends Converter {
 
     private SimplePhysicalEntity createSPEFromActor(Model model, ActorType actor, boolean createNewInstance) {
         SimplePhysicalEntity spe;
-        ActorTypeType aType = CTDUtil.extractActorTypeType(actor);
+        Actor aType = CtdUtil.extractActor(actor);
 
         switch (aType) {
             case GENE:
@@ -449,7 +448,7 @@ public class CTDInteractionConverter extends Converter {
                 GeneForm geneForm =
                         form == null
                                 ? GeneForm.PROTEIN
-                                : GeneForm.valueOf(CTDUtil.sanitizeGeneForm(form).toUpperCase());
+                                : GeneForm.valueOf(CtdUtil.sanitizeGeneForm(form).toUpperCase());
 
                 Class<? extends SimplePhysicalEntity> eClass = geneForm.getEntityClass();
                 Class<? extends EntityReference> refClass = geneForm.getReferenceClass();
@@ -507,19 +506,19 @@ public class CTDInteractionConverter extends Converter {
         String actorTypeId = actorType.getId();
 
         String form = actorType.getForm();
-        ActorTypeType actorTypeType = CTDUtil.extractActorTypeType(actorType);
+        Actor actor = CtdUtil.extractActor(actorType);
         // Override all forms of chemicals (none || analog)
-        if(actorTypeType.equals(ActorTypeType.CHEMICAL)) {
+        if(actor.equals(Actor.CHEMICAL)) {
             form = "chemical";
         }
         // If we still don't have any forms, then it means it is a gene, hence we need a protein by default
-        if((form == null || form.isEmpty()) && actorTypeType.equals(ActorTypeType.GENE)) {
+        if((form == null || form.isEmpty()) && actor.equals(Actor.GENE)) {
             form = "protein";
         }
         if(form == null) { form = "chemical"; }
-        String refId = CTDUtil.createRefRDFId(form.toUpperCase(), actorTypeId);
+        String refId = CtdUtil.createRefRDFId(form.toUpperCase(), actorTypeId);
 
-        String entityId = CTDUtil.sanitizeId(actorTypeId + "_" + form
+        String entityId = CtdUtil.sanitizeId(actorTypeId + "_" + form
                 + (createNewEntity ? "_" + UUID.randomUUID() : ""));
 
         EntityReference entityReference = (EntityReference) model.getByID(completeId(refId));
@@ -547,11 +546,11 @@ public class CTDInteractionConverter extends Converter {
     }
 
     private void transferNames(ActorType actor, Named named) {
-        assignName(CTDUtil.extractName(actor), named);
+        assignName(CtdUtil.extractName(actor), named);
     }
 
     private void transferNames(IxnType ixn, Named named) {
-        assignName(CTDUtil.extractName(ixn), named);
+        assignName(CtdUtil.extractName(ixn), named);
     }
 
 

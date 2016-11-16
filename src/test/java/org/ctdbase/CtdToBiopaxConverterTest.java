@@ -1,18 +1,18 @@
-package com.google.gsoc14.ctd2biopax;
+package org.ctdbase;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-public class CTD2BioPAXConverterTest extends TestCase {
-    public CTD2BioPAXConverterTest(String testName)
+public class CtdToBiopaxConverterTest extends TestCase {
+    public CtdToBiopaxConverterTest(String testName)
     {
         super( testName );
     }
 
     public static Test suite()
     {
-        return new TestSuite( CTD2BioPAXConverterTest.class );
+        return new TestSuite( CtdToBiopaxConverterTest.class );
     }
 
     public void testApp()

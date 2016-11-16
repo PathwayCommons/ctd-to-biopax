@@ -1,7 +1,7 @@
-package com.google.gsoc14.ctd2biopax.util;
+package org.ctdbase.util;
 
-import com.google.gsoc14.ctd2biopax.util.model.ActorTypeType;
-import com.google.gsoc14.ctd2biopax.util.model.AxnCode;
+import org.ctdbase.util.model.Actor;
+import org.ctdbase.util.model.AxnCode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ctdbase.model.ActorType;
@@ -16,8 +16,8 @@ import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.List;
 
-public class CTDUtil {
-    private static Log log = LogFactory.getLog(CTDUtil.class);
+public class CtdUtil {
+    private static Log log = LogFactory.getLog(CtdUtil.class);
     private static ObjectFactory ctdFactory = new ObjectFactory();
 
     public static String extractName(IxnType ixn) {
@@ -25,7 +25,8 @@ public class CTDUtil {
         String actionStr = axns.isEmpty() ? "n/a" : axns.iterator().next().getValue();
 
         String completeName = "";
-        switch (extractAxnCode(ixn)) {
+        AxnCode axnCode = extractAxnCode(ixn);
+        switch (axnCode) {
             case B:
             case W:
                 Iterator<ActorType> iterator = ixn.getActor().iterator();
@@ -38,8 +39,8 @@ public class CTDUtil {
                 break;
             default:
                 if(ixn.getActor().size() > 0) {
-                    String fName = CTDUtil.extractName(ixn.getActor().get(0));
-                    String sName = CTDUtil.extractName(ixn.getActor().get(1));
+                    String fName = CtdUtil.extractName(ixn.getActor().get(0));
+                    String sName = CtdUtil.extractName(ixn.getActor().get(1));
                     completeName = fName + " " + actionStr + " " + sName;
                 } else {
                     completeName = "n/a";
@@ -104,8 +105,8 @@ public class CTDUtil {
     }
 
 
-    public static ActorTypeType extractActorTypeType(ActorType actor) {
-        return ActorTypeType.valueOf(actor.getType().toUpperCase());
+    public static Actor extractActor(ActorType actor) {
+        return Actor.valueOf(actor.getType().toUpperCase());
     }
 
     public static String createProcessId(IxnType ixnType, ActorType actor) {
@@ -118,7 +119,9 @@ public class CTDUtil {
 
     public static String sanitizeId(String str) {
         try {
-            return URLEncoder.encode(str, "UTF-8");
+            String uri = URLEncoder.encode(str, "UTF-8");
+            uri = uri.replaceAll("[^-\\w]", "_"); //this e.g. removes '+' signs, if any
+            return uri;
         } catch (UnsupportedEncodingException e) {
             log.error("Problem encoding the ID: " + e.getMessage());
             return str;
@@ -135,7 +138,7 @@ public class CTDUtil {
     }
 
     public static String createRefRDFId(String form, String actorId) {
-        return CTDUtil.sanitizeId("ref_" + form + "_" + actorId);
+        return CtdUtil.sanitizeId("ref_" + form + "_" + actorId);
     }
 
     public static String createTaxonomyId(String taxId) {

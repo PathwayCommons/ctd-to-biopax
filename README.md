@@ -30,7 +30,7 @@ Each entity reference in this converted models includes all the external referne
 From the chemical vocabulary, `SmallMoleculeReference`s are produced;
 and from the gene vocabulary, various types of references are produced for corresponding CTD gene forms: `ProteinReference`, `DnaReference`, `RnaReference`, `DnaRegionReference` and `RnaRegionReference`.
 
-The interactions file contains all detailed interactions between chemicals and g to [Goal2-CTD2BioPAX/ctd2biopax](https://bitbucket.org/armish/gsoc14/src/default/Goal2-CTD2BioPAX/ctd2biopax/?at=default)enes, but no background information on the chemical/gene entities.
+The interactions file contains all detailed interactions between chemicals and genes, but no background information on the chemical/gene entities.
 Therefore it is necessary to convert all these files and merge these models into one in order to get a properly annotated BioPAX model.
 The converter exactly does that by making sure that the entity references from the vocabulary files match with the ones produced from the interactions file.
 This allows filling in the gaps and annotations of the entities in the final converted model.
@@ -38,8 +38,8 @@ This allows filling in the gaps and annotations of the entities in the final con
 The CTD data sets have nested interactions that are captured by their structured XML file and their XML schema: 
 [CTD_chem_gene_ixns_structured.xml.gz](http://ctdbase.org/reports/CTD_chem_gene_ixns_structured.xml.gz) and [CTD_chem_gene_ixns_structured.xsd](http://ctdbase.org/reports/CTD_chem_gene_ixns_structured.xsd).
 The converter takes advantage of `JAXB` library to handle this structured data set.
-The automatically generated Java classes that correspond to this schema can be found under [src/main/java/org/ctdbase/model](https://bitbucket.org/armish/gsoc14/src/default/Goal2-CTD2BioPAX/ctd2biopax/src/main/java/org/ctdbase/model/?at=default).
-The simple flow that show how the conversion happens is available as the main executable class: [CTD2BioPAXConverterMain.java](https://bitbucket.org/armish/gsoc14/src/default/Goal2-CTD2BioPAX/ctd2biopax/src/main/java/com/google/gsoc14/ctd2biopax/CTD2BioPAXConverterMain.java?at=default).
+The automatically generated Java classes that correspond to this schema can be found under `src/main/java/org/ctdbase/model`.
+The simple flow that show how the conversion happens is available as the main executable class: `CtdToBiopaxConverter.java`.
 
 ### Usage
 Check out (clone) and change the project directory:
@@ -48,14 +48,13 @@ Check out (clone) and change the project directory:
 
 build with Maven:
 
-	$ mvn clean install assembly:single
+	$ mvn clean package
 
-This will create a single executable JAR file under the `target/` directory, with the following file name: `ctd2biopax-{version}-single.jar`.
-You can also download this file under the downloads, e.g. [ctd2biopax-1.0-SNAPSHOT-single.jar](https://bitbucket.org/armish/gsoc14/downloads/ctd2biopax-1.0-SNAPSHOT-single.jar).
+This will create an executable JAR file `ctd-to-biopax.jar` under the `target/` directory.
 Once you have the single JAR file, you can try to run without any command line options to see the help text:
 
-	$ java -jar ctd2biopax-1.0-SNAPSHOT-single.jar
-	usage: CTD2BioPAXConverterMain
+	$ java -jar ctd-to-biopax.jar
+	usage: CtdToBiopaxConverter
 	 -c,--chemical <arg>      CTD chemical vocabulary (CSV) [optional]
 	 -g,--gene <arg>          CTD gene vocabulary (CSV) [optional]
 	 -o,--output <arg>        Output (BioPAX file) [required]
@@ -68,23 +67,21 @@ All input files (chemicals/genes/interactions) can be downloaded from the [CTD D
 If you want to test the converter though, you can download smallish examples for all these files from the downloads page: [goal2_ctd_smallSampleInputFiles-20140702.zip](https://bitbucket.org/armish/gsoc14/downloads/goal2_ctd_smallSampleInputFiles-20140702.zip).
 To convert these sample files into a single BioPAX file, run the following command:
 
-	$ java -jar ctd2biopax-1.0-SNAPSHOT-single.jar -x ctd_small.xml -c CTD_chemicals_small.csv -g CTD_genes_small.csv -r -o ctd.owl
+	$ java -jar ctd-to-biopax.jar -x ctd_small.xml -c CTD_chemicals_small.csv -g CTD_genes_small.csv -r -o ctd.owl
 
 which will create the `ctd.owl` file for you.
-You can find a sample converted BioPAX file from the following link: [goal2_ctd_smallSampleConverted-20140703.owl.gz](https://bitbucket.org/armish/gsoc14/downloads/goal2_ctd_smallSampleConverted-20140703.owl.gz).
+You can find a sample result BioPAX file at: [goal2_ctd_smallSampleConverted-20140703.owl.gz](https://bitbucket.org/armish/gsoc14/downloads/goal2_ctd_smallSampleConverted-20140703.owl.gz).
 Once you have the file, you can then visualize this small sample file with [ChiBE](https://code.google.com/p/chibe/), which will list all available pathways in the model first.
 
 ![CTD Pathway List](https://bitbucket.org/armish/gsoc14/downloads/goal2_ctd_small_screenshot_pathwaysList.png)
 
-and you can, for example, load the `Homo sapiens` pathway and this is what you will get:
+And you can, for example, load the `Homo sapiens` pathway and this is what you will get:
 
 ![CTD Homo Sapiens Sample](https://bitbucket.org/armish/gsoc14/downloads/goal2_ctd_small_pathwayView.jpg)
 
-The tool will also print log information to the console, for example: [goal2_ctd_smallSampleConversion.log.gz](https://bitbucket.org/armish/gsoc14/downloads/goal2_ctd_smallSampleConversion.log).
+The tool will also print log information to the console.
 
-If you'd like, you can download the fullly converted CTD data and its log from the following links: [goal2_ctd_fullConverted.owl.bz2](https://bitbucket.org/armish/gsoc14/downloads/goal2_ctd_fullConverted.owl.bz2) and [goal2_ctd-fullConversion.log.gz](https://bitbucket.org/armish/gsoc14/downloads/goal2_ctd-fullConversion.log.gz).
-
-### Validation results
+### Validation results (olde)
 Since the fully converted CTD model is huge (> 4 Gb), I only validated the small sample data set, which is representative of the full one: [goal2_ctd_validationResults_20140703.zip](https://bitbucket.org/armish/gsoc14/downloads/goal2_ctd_validationResults_20140703.zip).
 In the validation reports, we have a single type of `ERROR` that reports the lack of external references for some of the `EntityReference`s.
 These are mostly due to lack of information in the sample chemical/gene vocabularies and are not valid for the full CTD data set -- which has all the necessary background information on all entities.
@@ -94,4 +91,3 @@ This creates a problem in the converted BioPAX file, where we add gene xrefs to 
 This also causes some of the unification xrefs to be shared across entities (e.g. `DNA` and `Protein`).
 The options to get rid of these problems will be discussed with the mentors/curators.
 
-These issues that are related to the data source are [all entered](https://bitbucket.org/armish/gsoc14/issues?title=~Goal+2) to our Issue Tracker.

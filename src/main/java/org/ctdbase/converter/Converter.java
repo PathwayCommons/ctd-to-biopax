@@ -1,6 +1,5 @@
-package com.google.gsoc14.ctd2biopax.converter;
+package org.ctdbase.converter;
 
-import com.google.gsoc14.ctd2biopax.util.CTDUtil;
 import org.biopax.paxtools.model.BioPAXElement;
 import org.biopax.paxtools.model.BioPAXFactory;
 import org.biopax.paxtools.model.BioPAXLevel;
