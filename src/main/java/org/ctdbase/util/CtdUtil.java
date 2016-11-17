@@ -141,7 +141,7 @@ public class CtdUtil {
         return CtdUtil.sanitizeId("ref_" + form + "_" + actorId);
     }
 
-    public static String createTaxonomyId(String taxId) {
+    public static String taxonPathwayId(String taxId) {
         return "taxon_pathway_" + taxId;
     }
 }

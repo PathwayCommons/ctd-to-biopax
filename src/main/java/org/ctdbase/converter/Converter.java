@@ -27,8 +27,8 @@ public abstract class Converter {
         return model;
     }
 
-    public <T extends BioPAXElement> T create(Class<T> aClass, String uri) {
-        return getBioPAXFactory().create(aClass, completeId(uri));
+    public <T extends BioPAXElement> T create(Class<T> aClass, String partialId) {
+        return getBioPAXFactory().create(aClass, absoluteUri(partialId));
     }
 
     public abstract Model convert(InputStream inputStream) throws IOException;
@@ -43,7 +43,7 @@ public abstract class Converter {
         XMLBase = sharedXMLBase;
     }
 
-    protected String completeId(String partialId) {
+    protected String absoluteUri(String partialId) {
         return getXMLBase() + partialId;
     }
 }

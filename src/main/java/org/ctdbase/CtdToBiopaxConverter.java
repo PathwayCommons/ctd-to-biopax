@@ -73,18 +73,16 @@ public class CtdToBiopaxConverter {
             log.info("Done with the conversions. Converting the final model to OWL: " + outputFile);
             FileOutputStream outputStream = new FileOutputStream(outputFile);
 
+            //TODO (refs issue #7) remove those all-in-one "pathways" from the final model
             if(commandLine.hasOption("t")) {
                 String taxonomy = commandLine.getOptionValue("t");
                 log.info("Filtering taxonomy for: " + taxonomy);
-                simpleIOHandler.convertToOWL(
-                        finalModel,
-                        outputStream,
-                        finalModel.getXmlBase() + CtdUtil.createTaxonomyId(taxonomy)
-                );
+                String taxonPathwayUri = finalModel.getXmlBase() + CtdUtil.taxonPathwayId(taxonomy);
+                simpleIOHandler.convertToOWL(finalModel, outputStream, taxonPathwayUri);
             } else {
                 simpleIOHandler.convertToOWL(finalModel, outputStream);
             }
-            outputStream.close();
+//            outputStream.close(); //not required
             log.info("All done.");
         } catch (ParseException e) {
             System.err.println(e.getMessage());
