@@ -48,38 +48,38 @@ public class CTDChemicalConverter extends Converter {
             String[] dbIds = nextLine[8].split(INTRA_FIELD_SEPARATOR);
 
             String rdfId = CtdUtil.createRefRDFId("CHEMICAL", chemicalId);
-            SmallMoleculeReference smallMolecule = (SmallMoleculeReference) model.getByID(absoluteUri(rdfId));
-            if(smallMolecule != null) {
+            SmallMoleculeReference smallMoleculeReference = (SmallMoleculeReference) model.getByID(absoluteUri(rdfId));
+            if(smallMoleculeReference != null) {
                 log.warn("We already added chemical " + chemicalId + ". Skipping it.");
                 continue;
             }
-            smallMolecule = create(SmallMoleculeReference.class, rdfId);
+            smallMoleculeReference = create(SmallMoleculeReference.class, rdfId);
 
-            smallMolecule.setDisplayName(chemName);
-            smallMolecule.setStandardName(chemName);
-            smallMolecule.addName(chemName);
+            smallMoleculeReference.setDisplayName(chemName);
+            smallMoleculeReference.setStandardName(chemName);
+            smallMoleculeReference.addName(chemName);
             for (String synonym : synonyms) {
-                smallMolecule.addName(synonym);
+                smallMoleculeReference.addName(synonym);
             }
 
-            smallMolecule.addComment(definition);
+            smallMoleculeReference.addComment(definition);
 
-            smallMolecule.addXref(createUnificationXrefFromId(model, chemicalId));
+            smallMoleculeReference.addXref(createUnificationXrefFromId(model, chemicalId));
             for (String dbId : dbIds) {
                 if(dbId.isEmpty()) { continue; }
-                smallMolecule.addXref(createDrugBankXref(model, dbId));
+                smallMoleculeReference.addXref(createDrugBankXref(model, dbId));
             }
 
             for (String parentID : parentIDs) {
                 if(parentID.isEmpty()) { continue; }
-                smallMolecule.addXref(createMeshXref(model, parentID));
+                smallMoleculeReference.addXref(createMeshXref(model, parentID));
             }
 
             if(casRN != null && !casRN.isEmpty()) {
-                smallMolecule.addXref(createCASXref(model, casRN));
+                smallMoleculeReference.addXref(createCASXref(model, casRN));
             }
 
-            model.add(smallMolecule);
+            model.add(smallMoleculeReference);
         }
 
         log.info("Chemical conversion is complete. A total of "
