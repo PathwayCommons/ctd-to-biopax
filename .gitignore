@@ -6,4 +6,4 @@
 *.class
 *.jar
 *.war
-
+/target/

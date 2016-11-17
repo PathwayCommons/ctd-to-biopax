@@ -2,12 +2,12 @@ package org.ctdbase.util;
 
 import org.ctdbase.util.model.Actor;
 import org.ctdbase.util.model.AxnCode;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.ctdbase.model.ActorType;
 import org.ctdbase.model.AxnType;
 import org.ctdbase.model.IxnType;
 import org.ctdbase.model.ObjectFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
@@ -17,7 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class CtdUtil {
-    private static Log log = LogFactory.getLog(CtdUtil.class);
+    private static Logger log = LoggerFactory.getLogger(CtdUtil.class);
     private static ObjectFactory ctdFactory = new ObjectFactory();
 
     public static String extractName(IxnType ixn) {

@@ -2,18 +2,18 @@ package org.ctdbase.converter;
 
 import au.com.bytecode.opencsv.CSVReader;
 import org.ctdbase.util.CtdUtil;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.biopax.paxtools.model.Model;
 import org.biopax.paxtools.model.level3.RelationshipXref;
 import org.biopax.paxtools.model.level3.SmallMoleculeReference;
 import org.biopax.paxtools.model.level3.UnificationXref;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.UUID;
 
 public class CTDChemicalConverter extends Converter {
-    private static Log log = LogFactory.getLog(CTDChemicalConverter.class);
+    private static Logger log = LoggerFactory.getLogger(CTDChemicalConverter.class);
     private static final String INTRA_FIELD_SEPARATOR = "\\|";
 
     @Override

@@ -6,8 +6,6 @@ import org.ctdbase.converter.CTDInteractionConverter;
 import org.ctdbase.converter.Converter;
 import org.ctdbase.util.CtdUtil;
 import org.apache.commons.cli.*;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.biopax.paxtools.controller.Merger;
 import org.biopax.paxtools.controller.ModelUtils;
 import org.biopax.paxtools.io.SimpleIOHandler;
@@ -16,6 +14,8 @@ import org.biopax.paxtools.model.Model;
 import org.biopax.paxtools.model.level3.EntityReference;
 import org.biopax.paxtools.trove.TProvider;
 import org.biopax.paxtools.util.BPCollections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.Set;
 
 public class CtdToBiopaxConverter {
-    private static Log log = LogFactory.getLog(CtdToBiopaxConverter.class);
+    private static Logger log = LoggerFactory.getLogger(CtdToBiopaxConverter.class);
     private static final String helpText = CtdToBiopaxConverter.class.getSimpleName();
 
     public static void main( String[] args ) {

@@ -3,17 +3,17 @@ package org.ctdbase.converter;
 import au.com.bytecode.opencsv.CSVReader;
 import org.ctdbase.util.CtdUtil;
 import org.ctdbase.util.model.GeneForm;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.biopax.paxtools.model.Model;
 import org.biopax.paxtools.model.level3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class CTDGeneConverter extends Converter {
-    private static Log log = LogFactory.getLog(CTDGeneConverter.class);
+    private static Logger log = LoggerFactory.getLogger(CTDGeneConverter.class);
     private static final String INTRA_FIELD_SEPARATOR = "\\|";
 
     @Override

@@ -4,8 +4,6 @@ import org.ctdbase.util.CtdUtil;
 import org.ctdbase.util.model.Actor;
 import org.ctdbase.util.model.AxnCode;
 import org.ctdbase.util.model.GeneForm;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.biopax.paxtools.controller.PropertyEditor;
 import org.biopax.paxtools.controller.SimpleEditorMap;
 import org.biopax.paxtools.controller.Traverser;
@@ -16,6 +14,8 @@ import org.biopax.paxtools.model.Model;
 import org.biopax.paxtools.model.level3.*;
 import org.biopax.paxtools.model.level3.Process;
 import org.ctdbase.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -25,7 +25,7 @@ import java.io.InputStream;
 import java.util.*;
 
 public class CTDInteractionConverter extends Converter {
-    private static Log log = LogFactory.getLog(CTDInteractionConverter.class);
+    private static Logger log = LoggerFactory.getLogger(CTDInteractionConverter.class);
 
     @Override
     public Model convert(InputStream inputStream) {
