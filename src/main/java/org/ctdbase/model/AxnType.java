@@ -29,7 +29,7 @@ import javax.xml.bind.annotation.XmlValue;
  *   &lt;simpleContent>
  *     &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema>string">
  *       &lt;attribute name="code" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="degreecode" use="required" type="{http://www.w3.org/2001/XMLSchema}int" />
+ *       &lt;attribute name="degreecode" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="position" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="parentid" use="required" type="{http://www.w3.org/2001/XMLSchema}long" />
  *     &lt;/extension>

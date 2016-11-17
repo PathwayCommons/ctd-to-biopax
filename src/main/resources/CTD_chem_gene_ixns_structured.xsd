@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-    <!-- $Id: CTD_chem_gene_ixns_structured.xsd 10788 2012-03-09 19:01:47Z mcr $ -->
+    <!-- $Id: CTD_chem_gene_ixns_structured.xsd 14025 2015-03-02 18:32:49Z jwiegers $ -->
     <xs:annotation>
         <xs:documentation>
             The XML Schema for representing curated chemical-gene interactions from the Comparative Toxicogenomics
@@ -66,7 +66,7 @@
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
-                <xs:attribute type="xs:int" name="degreecode" use="required">
+                <xs:attribute type="xs:string" name="degreecode" use="required">
                     <xs:annotation>
                         <xs:documentation>
                             The CTD code that represents the degree to which the action type occurs: '+' (increases),
