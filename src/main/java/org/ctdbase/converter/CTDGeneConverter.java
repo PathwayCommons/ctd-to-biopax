@@ -29,10 +29,9 @@ public class CTDGeneConverter extends Converter {
             }
 
             if(nextLine.length < 8) {
-                log.warn("Description for '" + nextLine[0] + "' does not have enough columns to it. Skipping entity creation");
+                log.warn(nextLine[0] + "' does not have enough columns to it. Skipping.");
                 continue;
             }
-
 
             for (GeneForm geneForm : GeneForm.values()) {
                 generateReference(model, geneForm.getReferenceClass(), geneForm, nextLine);
@@ -55,7 +54,7 @@ public class CTDGeneConverter extends Converter {
             GeneForm geneForm,
             String[] tokens)
     {
-        assert tokens.length == 8;
+        assert tokens.length >= 8;
         /*
             0 - GeneSymbol
             1 - GeneName

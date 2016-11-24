@@ -26,7 +26,10 @@ public class CTDChemicalConverter extends Converter {
             // Skip commented lines
             if(nextLine[0].startsWith("#")) { continue; }
 
-            assert nextLine.length == 9;
+            if(nextLine.length < 9) {
+                log.warn(nextLine[0] + "' does not have enough columns. Skipping.");
+                continue;
+            }
             /*
                 0 - Chemical Name
                 1 - ChemicalID (MESH:*)

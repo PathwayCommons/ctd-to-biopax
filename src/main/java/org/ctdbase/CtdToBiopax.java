@@ -66,7 +66,7 @@ public class CtdToBiopax {
             }
 
             if(commandLine.hasOption("g")) {
-                String fileName = commandLine.getOptionValue("x");
+                String fileName = commandLine.getOptionValue("g");
                 Converter converter = new CTDGeneConverter();
                 log.info("Option 'g'. Using " + converter.getClass().getSimpleName() + " to convert: " + fileName);
                 Model model = converter.convert(new FileInputStream(fileName));
@@ -74,7 +74,7 @@ public class CtdToBiopax {
             }
 
             if(commandLine.hasOption("c")) {
-                String fileName = commandLine.getOptionValue("x");
+                String fileName = commandLine.getOptionValue("c");
                 Converter converter = new CTDChemicalConverter();
                 log.info("Option 'c'. Using " + converter.getClass().getSimpleName() + " to convert: " + fileName);
                 Model model = converter.convert(new FileInputStream(fileName));

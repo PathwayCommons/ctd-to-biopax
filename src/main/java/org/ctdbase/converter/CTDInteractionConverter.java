@@ -50,11 +50,11 @@ public class CTDInteractionConverter extends Converter {
         return model;
     }
 
-    private Control convertInteraction(Model model, IxnType ixn) {
+    private Process convertInteraction(Model model, IxnType ixn) {
         // We are going to use the first actor to create the controller
         List<ActorType> actors = ixn.getActor();
         if(actors.size() < 2) {
-            log.warn("Ixn #" + ixn.getId() + " has less than two actors. Skipping conversion for this reaction. ");
+            log.warn("Ixn #" + ixn.getId() + " has less than two actors! Skipping this reaction.");
             return null;
         }
 
@@ -89,7 +89,7 @@ public class CTDInteractionConverter extends Converter {
             assignReactionToPathway(model, topProcess, taxonType);
         }
 
-        return control;
+        return control; //TODO: why not topProcess (control might be already removed from the model - in the if-else above...)?
     }
 
     private void assignReactionToPathway(Model model, Process process, TaxonType taxonType) {
@@ -115,6 +115,7 @@ public class CTDInteractionConverter extends Converter {
             model.add(bioSource);
             model.add(pathway);
         }
+
         addReactionToPathwayByTraversing(model, process, pathway);
     }
 
@@ -126,7 +127,7 @@ public class CTDInteractionConverter extends Converter {
         final Pathway finalPathway = pathway;
         Traverser traverser = new Traverser(SimpleEditorMap.get(BioPAXLevel.L3), new Visitor() {
             public void visit(BioPAXElement domain, Object range, Model model, PropertyEditor<?, ?> editor) {
-                if(range != null && range instanceof Process) {
+                if(range instanceof Process) {
                     finalPathway.addPathwayComponent((Process) range);
                 }
             }
@@ -218,7 +219,9 @@ public class CTDInteractionConverter extends Converter {
                 transferNames(ixn, pathway);
                 model.add(pathway);
                 IxnType newIxn = CtdUtil.convertActorToIxn(actor);
-                addReactionToPathwayByTraversing(model, convertInteraction(model, newIxn), pathway);
+                Process proc = convertInteraction(model, newIxn);
+                if(proc != null)
+                    addReactionToPathwayByTraversing(model, proc, pathway);
                 process = pathway;
                 break;
             case EXT:
@@ -252,6 +255,10 @@ public class CTDInteractionConverter extends Converter {
 
         // Add action description as a comment
         process.addComment(axnCode.getDescription());
+
+        //sanity/bug check
+        if(process == null)
+           throw new AssertionError("NULL: failed to make any process with id: " + processId);
 
         return process;
     }
@@ -422,11 +429,11 @@ public class CTDInteractionConverter extends Converter {
                         controllers.addAll(createMultipleControllers(model, ixnType));
                         break;
                     default:
-                        Control control = convertInteraction(model, ixnType);
+                        Process proc = convertInteraction(model, ixnType);
                         Pathway pathway = create(Pathway.class, actor.getId());
                         transferNames(actor, pathway);
                         model.add(pathway);
-                        pathway.addPathwayComponent(control);
+                        pathway.addPathwayComponent(proc);
                         controllers.add(pathway);
                 }
                 break;
