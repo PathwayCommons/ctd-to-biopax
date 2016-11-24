@@ -9,33 +9,22 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public abstract class Converter {
-    private BioPAXFactory bioPAXFactory = BioPAXLevel.L3.getDefaultFactory();
 
+    private final BioPAXFactory bioPAXFactory = BioPAXLevel.L3.getDefaultFactory();
+    private String XMLBase = Converter.sharedXMLBase;
     public static String sharedXMLBase = "http://www.ctdbase.org/#";
 
-    public BioPAXFactory getBioPAXFactory() {
-        return bioPAXFactory;
-    }
-
-    public void setBioPAXFactory(BioPAXFactory bioPAXFactory) {
-        this.bioPAXFactory = bioPAXFactory;
-    }
-
     public Model createNewModel() {
-        Model model = getBioPAXFactory().createModel();
+        Model model = bioPAXFactory.createModel();
         model.setXmlBase(getXMLBase());
         return model;
     }
 
     public <T extends BioPAXElement> T create(Class<T> aClass, String partialId) {
-        return getBioPAXFactory().create(aClass, absoluteUri(partialId));
+        return bioPAXFactory.create(aClass, absoluteUri(partialId));
     }
 
-    public abstract Model convert(InputStream inputStream) throws IOException;
-
-    private String XMLBase = Converter.sharedXMLBase;
-
-    public  String getXMLBase() {
+    public String getXMLBase() {
         return XMLBase;
     }
 
@@ -46,4 +35,7 @@ public abstract class Converter {
     protected String absoluteUri(String partialId) {
         return getXMLBase() + partialId;
     }
+
+    // a public abstract method to be implemented:
+    public abstract Model convert(InputStream inputStream) throws IOException;
 }

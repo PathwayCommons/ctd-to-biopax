@@ -82,9 +82,12 @@ public class CTDChemicalConverter extends Converter {
             model.add(smallMoleculeReference);
         }
 
+        reader.close();
+
         log.info("Chemical conversion is complete. A total of "
                 + model.getObjects(SmallMoleculeReference.class).size()
                 + " chemicals were converted.");
+
         return model;
     }
 

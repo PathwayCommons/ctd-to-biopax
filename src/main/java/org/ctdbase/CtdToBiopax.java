@@ -23,9 +23,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Set;
 
-public class CtdToBiopaxConverter {
-    private static Logger log = LoggerFactory.getLogger(CtdToBiopaxConverter.class);
-    private static final String helpText = CtdToBiopaxConverter.class.getSimpleName();
+public class CtdToBiopax {
+    private static Logger log = LoggerFactory.getLogger(CtdToBiopax.class);
+    private static final String helpText = CtdToBiopax.class.getSimpleName();
 
     public static void main( String[] args ) {
         final CommandLineParser clParser = new GnuParser();
@@ -36,7 +36,7 @@ public class CtdToBiopaxConverter {
                 .addOption("c", "chemical", true, "CTD chemical vocabulary (CSV) [optional]")
                 .addOption("o", "output", true, "Output (BioPAX file) [required]")
                 .addOption("t", "taxonomy", true, "Taxonomy (e.g. '9606' for human) [optional]")
-                .addOption("r", "remove-tangling", false, "Remove tangling entities for clean-up [optional]")
+                .addOption("r", "remove-dangling", false, "Remove dangling entities for clean-up [optional]")
         ;
 
         try {
@@ -57,14 +57,33 @@ public class CtdToBiopaxConverter {
             Model finalModel = simpleIOHandler.getFactory().createModel();
 
             // First convert the interactions
-            convertAndMergeFile(commandLine, "x", new CTDInteractionConverter(), merger, finalModel);
-            // If we have other files, also merge them to the final model
-            convertAndMergeFile(commandLine, "g", new CTDGeneConverter(), merger, finalModel);
-            convertAndMergeFile(commandLine, "c", new CTDChemicalConverter(), merger, finalModel);
+            if(commandLine.hasOption("x")) {
+                String fileName = commandLine.getOptionValue("x");
+                Converter converter = new CTDInteractionConverter();
+                log.info("Option 'x'. Using " + converter.getClass().getSimpleName() + " to convert: " + fileName);
+                Model model = converter.convert(new FileInputStream(fileName));
+                merger.merge(finalModel, model);
+            }
+
+            if(commandLine.hasOption("g")) {
+                String fileName = commandLine.getOptionValue("x");
+                Converter converter = new CTDGeneConverter();
+                log.info("Option 'g'. Using " + converter.getClass().getSimpleName() + " to convert: " + fileName);
+                Model model = converter.convert(new FileInputStream(fileName));
+                merger.merge(finalModel, model);
+            }
+
+            if(commandLine.hasOption("c")) {
+                String fileName = commandLine.getOptionValue("x");
+                Converter converter = new CTDChemicalConverter();
+                log.info("Option 'c'. Using " + converter.getClass().getSimpleName() + " to convert: " + fileName);
+                Model model = converter.convert(new FileInputStream(fileName));
+                merger.merge(finalModel, model);
+            }
 
             if(commandLine.hasOption("r")) {
                 Set<BioPAXElement> removed = ModelUtils.removeObjectsIfDangling(finalModel, EntityReference.class);
-                log.info("Removed " + removed.size() + " tangling entity references from the model.");
+                log.info("Removed " + removed.size() + " dangling entity references from the model.");
             }
 
             // Setting the xmlbase
@@ -82,7 +101,6 @@ public class CtdToBiopaxConverter {
             } else {
                 simpleIOHandler.convertToOWL(finalModel, outputStream);
             }
-//            outputStream.close(); //not required
             log.info("All done.");
         } catch (ParseException e) {
             System.err.println(e.getMessage());
@@ -97,25 +115,4 @@ public class CtdToBiopaxConverter {
 
     }
 
-    private static void convertAndMergeFile(CommandLine commandLine,
-                                     String option,
-                                     Converter converter,
-                                     Merger merger,
-                                     Model finalModel)
-            throws IOException
-    {
-        if(commandLine.hasOption(option)) {
-            String fileName = commandLine.getOptionValue(option);
-            FileInputStream fis = new FileInputStream(fileName);
-            log.info(
-                    "Found option '" + option + "'. " +
-                            "Using " + converter.getClass().getSimpleName() + " for conversion of file: " + fileName
-            );
-            Model model = converter.convert(fis);
-            merger.merge(finalModel, model);
-            fis.close();
-        } else {
-            log.debug("Couldn't find option '" + option + "'.");
-        }
-    }
 }

@@ -58,7 +58,7 @@ The converter takes advantage of `JAXB` library to handle this structured
 data set. The automatically generated Java classes that correspond to 
 this schema can be found under `src/main/java/org/ctdbase/model`.
 The simple flow that show how the conversion happens is available as 
-the main executable class: `CtdToBiopaxConverter.java`.
+the main executable class: `CtdToBiopax.java`.
 
 ### Usage
 Check out (clone) and change the project directory:
@@ -74,7 +74,7 @@ This will create an executable JAR file `ctd-to-biopax.jar` under the
 to run without any command line options to see the help text:
 
 	$ java -jar ctd-to-biopax.jar
-	usage: CtdToBiopaxConverter
+	usage: CtdToBiopax
 	 -c,--chemical <arg>      CTD chemical vocabulary (CSV) [optional]
 	 -g,--gene <arg>          CTD gene vocabulary (CSV) [optional]
 	 -o,--output <arg>        Output (BioPAX file) [required]

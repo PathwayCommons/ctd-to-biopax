@@ -39,6 +39,8 @@ public class CTDGeneConverter extends Converter {
             }
         }
 
+        reader.close();
+
         log.info("Done with the gene conversion. "
                 + "Added "
                 + model.getObjects(EntityReference.class).size()
