@@ -50,7 +50,7 @@ public class CTDChemicalConverter extends Converter {
             String[] synonyms = nextLine[7].split(INTRA_FIELD_SEPARATOR);
             String[] dbIds = nextLine[8].split(INTRA_FIELD_SEPARATOR);
 
-            String rdfId = CtdUtil.createRefRDFId("CHEMICAL", chemicalId);
+            String rdfId = CtdUtil.createRefId("CHEMICAL", chemicalId);
             SmallMoleculeReference smallMoleculeReference = (SmallMoleculeReference) model.getByID(absoluteUri(rdfId));
             if(smallMoleculeReference != null) {
                 log.warn("We already added chemical " + chemicalId + ". Skipping it.");

@@ -59,7 +59,12 @@ public class CtdToBiopax {
             // First convert the interactions
             if(commandLine.hasOption("x")) {
                 String fileName = commandLine.getOptionValue("x");
-                Converter converter = new CTDInteractionConverter();
+                String taxonomy = null;
+                if(commandLine.hasOption("t")) {
+                    taxonomy = commandLine.getOptionValue("t");
+                    log.info("Will do only interactions with taxonomy: " + taxonomy);
+                }
+                Converter converter = new CTDInteractionConverter(taxonomy);
                 log.info("Option 'x'. Using " + converter.getClass().getSimpleName() + " to convert: " + fileName);
                 Model model = converter.convert(new FileInputStream(fileName));
                 merger.merge(finalModel, model);
@@ -86,33 +91,21 @@ public class CtdToBiopax {
                 log.info("Removed " + removed.size() + " dangling entity references from the model.");
             }
 
-            // Setting the xmlbase
             finalModel.setXmlBase(Converter.sharedXMLBase);
             String outputFile = commandLine.getOptionValue("o");
             log.info("Done with the conversions. Converting the final model to OWL: " + outputFile);
             FileOutputStream outputStream = new FileOutputStream(outputFile);
+            simpleIOHandler.convertToOWL(finalModel, outputStream);
 
-            //TODO (refs issue #7) remove those all-in-one "pathways" from the final model
-            if(commandLine.hasOption("t")) {
-                String taxonomy = commandLine.getOptionValue("t");
-                log.info("Filtering taxonomy for: " + taxonomy);
-                String taxonPathwayUri = finalModel.getXmlBase() + CtdUtil.taxonPathwayId(taxonomy);
-                simpleIOHandler.convertToOWL(finalModel, outputStream, taxonPathwayUri);
-            } else {
-                simpleIOHandler.convertToOWL(finalModel, outputStream);
-            }
             log.info("All done.");
         } catch (ParseException e) {
             System.err.println(e.getMessage());
             HelpFormatter helpFormatter = new HelpFormatter();
             helpFormatter.printHelp(helpText, gnuOptions);
             System.exit(-1);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
 }

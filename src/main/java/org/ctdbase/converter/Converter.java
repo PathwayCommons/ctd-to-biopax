@@ -1,7 +1,6 @@
 package org.ctdbase.converter;
 
 import org.biopax.paxtools.model.BioPAXElement;
-import org.biopax.paxtools.model.BioPAXFactory;
 import org.biopax.paxtools.model.BioPAXLevel;
 import org.biopax.paxtools.model.Model;
 
@@ -10,18 +9,17 @@ import java.io.InputStream;
 
 public abstract class Converter {
 
-    private final BioPAXFactory bioPAXFactory = BioPAXLevel.L3.getDefaultFactory();
     private String XMLBase = Converter.sharedXMLBase;
     public static String sharedXMLBase = "http://www.ctdbase.org/#";
 
     public Model createNewModel() {
-        Model model = bioPAXFactory.createModel();
+        Model model = BioPAXLevel.L3.getDefaultFactory().createModel();
         model.setXmlBase(getXMLBase());
         return model;
     }
 
-    public <T extends BioPAXElement> T create(Class<T> aClass, String partialId) {
-        return bioPAXFactory.create(aClass, absoluteUri(partialId));
+    public <T extends BioPAXElement> T create(Class<T> aClass, String rdfId) {
+        return BioPAXLevel.L3.getDefaultFactory().create(aClass, absoluteUri(rdfId));
     }
 
     public String getXMLBase() {
@@ -32,8 +30,8 @@ public abstract class Converter {
         XMLBase = sharedXMLBase;
     }
 
-    protected String absoluteUri(String partialId) {
-        return getXMLBase() + partialId;
+    protected String absoluteUri(String rdfId) {
+        return (rdfId.startsWith("http:")) ? rdfId : getXMLBase() + rdfId;
     }
 
     // a public abstract method to be implemented:

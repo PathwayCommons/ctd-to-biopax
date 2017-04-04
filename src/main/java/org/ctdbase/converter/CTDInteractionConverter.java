@@ -4,12 +4,6 @@ import org.ctdbase.util.CtdUtil;
 import org.ctdbase.util.model.Actor;
 import org.ctdbase.util.model.AxnCode;
 import org.ctdbase.util.model.GeneForm;
-import org.biopax.paxtools.controller.PropertyEditor;
-import org.biopax.paxtools.controller.SimpleEditorMap;
-import org.biopax.paxtools.controller.Traverser;
-import org.biopax.paxtools.controller.Visitor;
-import org.biopax.paxtools.model.BioPAXElement;
-import org.biopax.paxtools.model.BioPAXLevel;
 import org.biopax.paxtools.model.Model;
 import org.biopax.paxtools.model.level3.*;
 import org.biopax.paxtools.model.level3.Process;
@@ -26,6 +20,12 @@ import java.util.*;
 
 public class CTDInteractionConverter extends Converter {
     private static Logger log = LoggerFactory.getLogger(CTDInteractionConverter.class);
+
+    private final String taxId;
+
+    public CTDInteractionConverter(String taxId) {
+        this.taxId = taxId;
+    }
 
     @Override
     public Model convert(InputStream inputStream) {
@@ -51,26 +51,51 @@ public class CTDInteractionConverter extends Converter {
     }
 
     private Process convertInteraction(Model model, IxnType ixn) {
-        // We are going to use the first actor to create the controller
+        // We use the first (0) actor to create a Control interaction
         List<ActorType> actors = ixn.getActor();
+
         if(actors.size() < 2) {
-            log.warn("Ixn #" + ixn.getId() + " has less than two actors! Skipping this reaction.");
+            log.warn("Ixn #" + ixn.getId() + " has less than two actors; skipping this reaction.");
             return null;
         }
 
+        //filter by organism (taxonomy) if needed
+        if(taxId != null) {
+            boolean skip = true;
+            for (TaxonType taxonType : ixn.getTaxon()) {
+                if (taxId.equalsIgnoreCase(taxonType.getId())) {
+                    skip = false;
+                    break;
+                }
+            }
+            if(skip) {
+                log.info("Ixn #" + ixn.getId() + " is NOT about taxonomy:" + taxId + "; skipping.");
+                return null;
+            }
+        }
+
         Process process = createProcessFromAction(model, ixn, actors.get(1));
-        Control control = createControlFromActor(model, ixn, actors.get(0));
+        Control control = createControlFromActor(model, process, ixn, actors.get(0));
         control.addControlled(process);
         assignControlVocabulary(control, ixn.getAxn().iterator().next());
 
-        // Now annotate with publications
-        int count = 0;
-        for (ReferenceType referenceType : ixn.getReference()) {
-            PublicationXref publicationXref = create(PublicationXref.class, "pub_" + ixn.getId() + "_" + (++count));
-            publicationXref.setDb("Pubmed");
-            publicationXref.setId(referenceType.getPmid().toString());
-            process.addXref(publicationXref);
-            model.add(publicationXref);
+        // add publication xrefs
+        for (ReferenceType referenceType : ixn.getReference())
+        {
+            final String pmid = referenceType.getPmid().toString();
+            final String uri =  "http://identifiers.org/pubmed/" + pmid;
+            PublicationXref publicationXref = (PublicationXref) model.getByID(uri);
+            if(publicationXref==null) {
+                publicationXref = create(PublicationXref.class, uri);
+                publicationXref.setDb("pubmed");
+                publicationXref.setId(pmid);
+                model.add(publicationXref);
+            }
+
+            if (process != null)
+                process.addXref(publicationXref);
+            else
+                control.addXref(publicationXref);
         }
 
         Process topProcess;
@@ -83,56 +108,7 @@ public class CTDInteractionConverter extends Converter {
             topProcess = control;
         }
 
-        // Categorize according to the organism via pathways -
-        // makes "pathways", such as 'taxon_pathway-9606', that contain all the interactions:
-        for (TaxonType taxonType : ixn.getTaxon()) {
-            assignReactionToPathway(model, topProcess, taxonType);
-        }
-
-        return control; //TODO: why not topProcess (control might be already removed from the model - in the if-else above...)?
-    }
-
-    private void assignReactionToPathway(Model model, Process process, TaxonType taxonType) {
-        String taxonName = taxonType.getValue();
-        String orgTaxId = taxonType.getId();
-        String pathwayId = CtdUtil.taxonPathwayId(orgTaxId);
-        Pathway pathway = (Pathway) model.getByID(absoluteUri(pathwayId));
-        if(pathway == null) {
-            pathway = create(Pathway.class, pathwayId);
-            assignName(taxonName + " pathway", pathway);
-
-            // Let's assign the biosource
-            BioSource bioSource = create(BioSource.class, "src_" + orgTaxId);
-            assignName(taxonName, bioSource);
-            pathway.setOrganism(bioSource);
-
-            UnificationXref unificationXref = create(UnificationXref.class, "xref_taxon_" + orgTaxId);
-            unificationXref.setDb("taxonomy");
-            unificationXref.setId(orgTaxId);
-            bioSource.addXref(unificationXref);
-
-            model.add(unificationXref);
-            model.add(bioSource);
-            model.add(pathway);
-        }
-
-        addReactionToPathwayByTraversing(model, process, pathway);
-    }
-
-    private void addReactionToPathwayByTraversing(Model model, Process process, Pathway pathway) {
-        // Assume that this process is not part of the pathway (yet)
-        pathway.addPathwayComponent(process);
-
-        // Now propagate pathway assignments down the line
-        final Pathway finalPathway = pathway;
-        Traverser traverser = new Traverser(SimpleEditorMap.get(BioPAXLevel.L3), new Visitor() {
-            public void visit(BioPAXElement domain, Object range, Model model, PropertyEditor<?, ?> editor) {
-                if(range instanceof Process) {
-                    finalPathway.addPathwayComponent((Process) range);
-                }
-            }
-        });
-        traverser.traverse(process, model);
+        return topProcess;
     }
 
     private void assignControlVocabulary(Control control, AxnType action) {
@@ -145,17 +121,20 @@ public class CTDInteractionConverter extends Converter {
                 break;
             case '1':
             default:
-                // No vocab -- unknown
+                break; // No vocab -- unknown
         }
     }
 
-    private Process createProcessFromAction(Model model, IxnType ixn, ActorType actor) {
+    private Process createProcessFromAction(Model model, IxnType ixn, ActorType actor)
+    {
         AxnCode axnCode = CtdUtil.extractAxnCode(ixn);
         String processId = CtdUtil.createProcessId(ixn, actor);
-
         Process process = (Process) model.getByID(absoluteUri(processId));
-        if(process != null)
+
+        if(process != null) {
+            log.debug("createProcessFromAction: found previously created process: " + processId);
             return process;
+        }
 
         switch (axnCode) {
             case EXP:
@@ -214,15 +193,25 @@ public class CTDInteractionConverter extends Converter {
                 // general degredation
                 process = createDegradationReaction(model, actor, processId);
                 break;
-            case RXN: // Reaction
+            case RXN: // Reaction (or Control with TemplateReaction)
                 Pathway pathway = create(Pathway.class, processId);
                 transferNames(ixn, pathway);
                 model.add(pathway);
                 IxnType newIxn = CtdUtil.convertActorToIxn(actor);
                 Process proc = convertInteraction(model, newIxn);
-                if(proc != null)
-                    addReactionToPathwayByTraversing(model, proc, pathway);
+                if(proc != null) {
+                    pathway.addPathwayComponent(proc);
+                    transferNames(newIxn, proc);
+                }
                 process = pathway;
+                //TODO: do we want the above pathway (why not either process or null; see comments below)?
+//                IxnType newIxn = CtdUtil.convertActorToIxn(actor);
+//                Process proc = convertInteraction(model, newIxn);
+//                if(proc != null) {
+//                    transferNames(newIxn, proc);
+//                    process = proc;
+//                } else
+//                    process = null;
                 break;
             case EXT:
             case SEC:
@@ -245,20 +234,16 @@ public class CTDInteractionConverter extends Converter {
             case LOC: // localization
             case REC: // Response to substance
             default:
-                log.warn("We don't have a proper representation of " + axnCode.getTypeName() + " reactions. " +
-                        "Creating a black-box pathway for interaction #" + ixn.getId());
+                log.info("For a " + axnCode.getTypeName() + " reaction, " +
+                        "created a black-box pathway for interaction #" + ixn.getId());
                 Pathway blackbox = create(Pathway.class, processId);
                 transferNames(ixn, blackbox);
                 model.add(blackbox);
                 process = blackbox;
         }
 
-        // Add action description as a comment
-        process.addComment(axnCode.getDescription());
-
-        //sanity/bug check
-        if(process == null)
-           throw new AssertionError("NULL: failed to make any process with id: " + processId);
+        if(process != null)
+            process.addComment(axnCode.getDescription());
 
         return process;
     }
@@ -401,13 +386,20 @@ public class CTDInteractionConverter extends Converter {
                 templateReaction.addProduct(actorEntity);
                 model.add(templateReaction);
                 transferNames(ixn, templateReaction);
+                break;
         }
         return templateReaction;
     }
 
-    private Control createControlFromActor(Model model, IxnType ixn, ActorType actor) {
-        Control control = create(Control.class, "control_" + ixn.getId());
-        for (Controller controller : createControlEntityFromActor(model, actor)) {
+    private Control createControlFromActor(Model model, Process controlled, IxnType ixn, ActorType actor)
+    {
+        Control control = (controlled instanceof TemplateReaction)
+            ? create(TemplateReactionRegulation.class, "control_" + ixn.getId())
+                : create(Control.class, "control_" + ixn.getId());
+
+        transferNames(ixn, control);
+
+        for (Controller controller : createControllersFromActor(model, actor)) {
             control.addController(controller);
         }
         model.add(control);
@@ -415,12 +407,12 @@ public class CTDInteractionConverter extends Converter {
         return control;
     }
 
-    private Collection<Controller> createControlEntityFromActor(Model model, ActorType actor) {
+    private Collection<Controller> createControllersFromActor(Model model, ActorType actor) {
         HashSet<Controller> controllers = new HashSet<Controller>();
         Actor aType = CtdUtil.extractActor(actor);
         switch (aType) {
             case IXN:
-                IxnType ixnType = CtdUtil.convertActorToIxn(actor);
+                final IxnType ixnType = CtdUtil.convertActorToIxn(actor);
                 switch(CtdUtil.extractAxnCode(ixnType)) {
                     case B:
                         controllers.add(createComplex(model, ixnType));
@@ -430,11 +422,14 @@ public class CTDInteractionConverter extends Converter {
                         break;
                     default:
                         Process proc = convertInteraction(model, ixnType);
-                        Pathway pathway = create(Pathway.class, actor.getId());
-                        transferNames(actor, pathway);
-                        model.add(pathway);
-                        pathway.addPathwayComponent(proc);
-                        controllers.add(pathway);
+                        if(proc != null) {
+                            //TODO: does the controller pathway have to contain the process in it?
+                            Pathway pathway = create(Pathway.class, actor.getId());
+                            transferNames(actor, pathway);
+                            model.add(pathway);
+                            pathway.addPathwayComponent(proc);
+                            controllers.add(pathway);
+                        }
                 }
                 break;
             default: // If not an IXN, then it is a physical entity
@@ -473,9 +468,8 @@ public class CTDInteractionConverter extends Converter {
     private Collection<? extends Controller> createMultipleControllers(Model model, IxnType ixnType) {
         HashSet<Controller> controllers = new HashSet<Controller>();
         for (ActorType actorType : ixnType.getActor()) {
-            controllers.addAll(createControlEntityFromActor(model, actorType));
+            controllers.addAll(createControllersFromActor(model, actorType));
         }
-
         return controllers;
     }
 
@@ -517,7 +511,7 @@ public class CTDInteractionConverter extends Converter {
             form = "protein";
         }
         if(form == null) { form = "chemical"; }
-        String refId = CtdUtil.createRefRDFId(form.toUpperCase(), actorTypeId);
+        String refId = CtdUtil.createRefId(form.toUpperCase(), actorTypeId);
 
         String entityId = CtdUtil.sanitizeId(actorTypeId + "_" + form
                 + (createNewEntity ? "_" + UUID.randomUUID() : ""));
@@ -541,9 +535,12 @@ public class CTDInteractionConverter extends Converter {
     }
 
     private void assignName(String name, Named named) {
-        named.setStandardName(name);
-        named.setDisplayName(name);
-        named.getName().add(name);
+        if(name!=null && !name.isEmpty()) {
+            if(name.length() < 50)
+                named.setDisplayName(name);
+            else
+                named.addName(name);
+        }
     }
 
     private void transferNames(ActorType actor, Named named) {

@@ -101,6 +101,7 @@ public class CtdUtil {
         }
 
         ixnType.setId(actor.getId().hashCode());
+
         return ixnType;
     }
 
@@ -137,11 +138,8 @@ public class CtdUtil {
                 ;
     }
 
-    public static String createRefRDFId(String form, String actorId) {
-        return CtdUtil.sanitizeId("ref_" + form + "_" + actorId);
+    public static String createRefId(String form, String actorId) {
+        return sanitizeId("ref_" + form + "_" + actorId);
     }
 
-    public static String taxonPathwayId(String taxId) {
-        return "taxon_pathway_" + taxId;
-    }
 }

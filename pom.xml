@@ -34,20 +34,20 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git://github.com/PathwayCommons/${name}.git</connection>
-        <developerConnection>scm:git:git@github.com:PathwayCommons/${name}.git</developerConnection>
-        <url>https://github.com/PathwayCommons/${name}</url>
+        <connection>scm:git:git://github.com/PathwayCommons/${project.name}.git</connection>
+        <developerConnection>scm:git:git@github.com:PathwayCommons/${project.name}.git</developerConnection>
+        <url>https://github.com/PathwayCommons/${project.name}</url>
         <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/PathwayCommons/${name}/issues</url>
+        <url>https://github.com/PathwayCommons/${project.name}/issues</url>
     </issueManagement>
 
     <ciManagement>
         <system>Travis CI</system>
-        <url>https://travis-ci.org/PathwayCommons/${name}</url>
+        <url>https://travis-ci.org/PathwayCommons/${project.name}</url>
     </ciManagement>
 
     <properties>
