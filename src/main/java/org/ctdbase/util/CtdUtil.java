@@ -66,11 +66,6 @@ public class CtdUtil {
                 : "[" + extractName(convertActorToIxn(actor)) + "]";
 
     }
-    public static AxnType extractAxn(IxnType ixn) {
-        List<AxnType> actions = ixn.getAxn();
-        assert actions.size() > 0;
-        return actions.iterator().next();
-    }
 
     public static AxnCode extractAxnCode(AxnType axnType) {
         return AxnCode.valueOf(axnType.getCode().toUpperCase());
@@ -78,9 +73,10 @@ public class CtdUtil {
 
     public static AxnCode extractAxnCode(IxnType ixn) {
         if(ixn.getAxn().isEmpty()) {
-            return AxnCode.RXN;
+            return AxnCode.RXN;//TODO: why not the default (null) or e.g., MET?
         } else {
-            return extractAxnCode(extractAxn(ixn));
+            //TODO: gets only the first axn code (there can be more than one...)
+            return extractAxnCode(ixn.getAxn().iterator().next());
         }
     }
 
@@ -111,7 +107,7 @@ public class CtdUtil {
     }
 
     public static String createProcessId(IxnType ixnType, ActorType actor) {
-        return sanitizeId("process_" + extractAxnCode(extractAxn(ixnType)) + "_" + extractName(actor));
+        return sanitizeId("process_" + extractAxnCode(ixnType) + "_" + extractName(actor));
     }
 
     public static String locationToId(String location) {

@@ -1,5 +1,6 @@
 package org.ctdbase.converter;
 
+import javafx.scene.shape.Path;
 import org.ctdbase.util.CtdUtil;
 import org.ctdbase.util.model.Actor;
 import org.ctdbase.util.model.AxnCode;
@@ -61,7 +62,7 @@ public class CTDInteractionConverter extends Converter {
 
         //filter by organism (taxonomy) if needed
         if(taxId != null) {
-            boolean skip = true;
+            boolean skip = (ixn.getTaxon().isEmpty()) ? false : true;
             for (TaxonType taxonType : ixn.getTaxon()) {
                 if (taxId.equalsIgnoreCase(taxonType.getId())) {
                     skip = false;
@@ -128,11 +129,12 @@ public class CTDInteractionConverter extends Converter {
     private Process createProcessFromAction(Model model, IxnType ixn, ActorType actor)
     {
         AxnCode axnCode = CtdUtil.extractAxnCode(ixn);
-        String processId = CtdUtil.createProcessId(ixn, actor);
+        final String processId = CtdUtil.createProcessId(ixn, actor);
         Process process = (Process) model.getByID(absoluteUri(processId));
 
         if(process != null) {
-            log.debug("createProcessFromAction: found previously created process: " + processId);
+            log.info("createProcessFromAction, found previously created " +
+                    process.getModelInterface().getSimpleName() + " process: " + processId);
             return process;
         }
 
@@ -194,16 +196,18 @@ public class CTDInteractionConverter extends Converter {
                 process = createDegradationReaction(model, actor, processId);
                 break;
             case RXN: // Reaction (or Control with TemplateReaction)
-                Pathway pathway = create(Pathway.class, processId);
-                transferNames(ixn, pathway);
-                model.add(pathway);
+                process = create(Pathway.class, processId);
+                model.add(process);
+                log.info("createProcessFromAction (RXN case), new pathway: " + processId);
+                transferNames(ixn, process);
                 IxnType newIxn = CtdUtil.convertActorToIxn(actor);
                 Process proc = convertInteraction(model, newIxn);
                 if(proc != null) {
-                    pathway.addPathwayComponent(proc);
                     transferNames(newIxn, proc);
+                    log.info("- pathwayComponent: " + proc.getModelInterface().getSimpleName() + " " + proc.getUri());
+                    ((Pathway)process).addPathwayComponent(proc);
                 }
-                process = pathway;
+
                 //TODO: do we want the above pathway (why not either process or null; see comments below)?
 //                IxnType newIxn = CtdUtil.convertActorToIxn(actor);
 //                Process proc = convertInteraction(model, newIxn);
@@ -234,12 +238,12 @@ public class CTDInteractionConverter extends Converter {
             case LOC: // localization
             case REC: // Response to substance
             default:
-                log.info("For a " + axnCode.getTypeName() + " reaction, " +
-                        "created a black-box pathway for interaction #" + ixn.getId());
-                Pathway blackbox = create(Pathway.class, processId);
-                transferNames(ixn, blackbox);
-                model.add(blackbox);
-                process = blackbox;
+                log.info("createProcessFromAction, for a " + axnCode.getTypeName() + " reaction, " +
+                    "created a blackbox pathway (" + processId + ") for interaction #" + ixn.getId());
+                process = create(Pathway.class, processId);
+                transferNames(ixn, process);
+                model.add(process);
+                break;
         }
 
         if(process != null)
