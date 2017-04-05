@@ -16,6 +16,8 @@ public class CTDInteractionConverterTest {
         CTDInteractionConverter converter = new CTDInteractionConverter("9606");
         Model m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
 
+        //TODO: replace printing to the stout with good assertions
+
         (new SimpleIOHandler()).convertToOWL(m,System.out);
     }
 

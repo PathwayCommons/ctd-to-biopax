@@ -1,6 +1,5 @@
 package org.ctdbase.converter;
 
-import javafx.scene.shape.Path;
 import org.ctdbase.util.CtdUtil;
 import org.ctdbase.util.model.Actor;
 import org.ctdbase.util.model.AxnCode;
@@ -78,7 +77,18 @@ public class CTDInteractionConverter extends Converter {
         Process process = createProcessFromAction(model, ixn, actors.get(1));
         Control control = createControlFromActor(model, process, ixn, actors.get(0));
         control.addControlled(process);
+
         assignControlVocabulary(control, ixn.getAxn().iterator().next());
+
+        Process topProcess;
+        // Binding reactions are special (in BioPAX): we don't want controls for them -- so let's back roll - TODO: why (@armish)?..
+        if(CtdUtil.extractAxnCode(ixn).equals(AxnCode.B)) {
+            control.removeControlled(process);
+            model.remove(control);
+            topProcess = process;
+        } else {
+            topProcess = control;
+        }
 
         // add publication xrefs
         for (ReferenceType referenceType : ixn.getReference())
@@ -92,21 +102,7 @@ public class CTDInteractionConverter extends Converter {
                 publicationXref.setId(pmid);
                 model.add(publicationXref);
             }
-
-            if (process != null)
-                process.addXref(publicationXref);
-            else
-                control.addXref(publicationXref);
-        }
-
-        Process topProcess;
-        // Binding reactions are special (in BioPAX): we don't want controls for them -- so let's back roll - TODO: why (@armish)?..
-        if(CtdUtil.extractAxnCode(ixn).equals(AxnCode.B)) {
-            control.removeControlled(process);
-            model.remove(control);
-            topProcess = process;
-        } else {
-            topProcess = control;
+            topProcess.addXref(publicationXref);
         }
 
         return topProcess;
@@ -196,26 +192,16 @@ public class CTDInteractionConverter extends Converter {
                 process = createDegradationReaction(model, actor, processId);
                 break;
             case RXN: // Reaction (or Control with TemplateReaction)
-                process = create(Pathway.class, processId);
-                model.add(process);
-                log.info("createProcessFromAction (RXN case), new pathway: " + processId);
-                transferNames(ixn, process);
+//                process = create(Pathway.class, processId);
+//                model.add(process);
+                log.info("createProcessFromAction (RXN ), new process: " + processId);
+//                transferNames(ixn, process);
                 IxnType newIxn = CtdUtil.convertActorToIxn(actor);
                 Process proc = convertInteraction(model, newIxn);
-                if(proc != null) {
-                    transferNames(newIxn, proc);
-                    log.info("- pathwayComponent: " + proc.getModelInterface().getSimpleName() + " " + proc.getUri());
-                    ((Pathway)process).addPathwayComponent(proc);
-                }
-
-                //TODO: do we want the above pathway (why not either process or null; see comments below)?
-//                IxnType newIxn = CtdUtil.convertActorToIxn(actor);
-//                Process proc = convertInteraction(model, newIxn);
-//                if(proc != null) {
-//                    transferNames(newIxn, proc);
-//                    process = proc;
-//                } else
-//                    process = null;
+                transferNames(newIxn, proc);
+                process = proc;
+//                log.info("- pathwayComponent: " + proc.getModelInterface().getSimpleName() + " " + proc.getUri());
+//                ((Pathway)process).addPathwayComponent(proc);
                 break;
             case EXT:
             case SEC:
@@ -397,9 +383,12 @@ public class CTDInteractionConverter extends Converter {
 
     private Control createControlFromActor(Model model, Process controlled, IxnType ixn, ActorType actor)
     {
-        Control control = (controlled instanceof TemplateReaction)
-            ? create(TemplateReactionRegulation.class, "control_" + ixn.getId())
-                : create(Control.class, "control_" + ixn.getId());
+        Control control;
+
+        if(controlled instanceof TemplateReaction)
+            control = create(TemplateReactionRegulation.class, "regulation_" + ixn.getId());
+        else
+            control = create(Control.class, "control_" + ixn.getId());
 
         transferNames(ixn, control);
 
@@ -452,10 +441,9 @@ public class CTDInteractionConverter extends Converter {
             case GENE:
             default:
                 String form = actor.getForm();
-                GeneForm geneForm =
-                        form == null
-                                ? GeneForm.PROTEIN
-                                : GeneForm.valueOf(CtdUtil.sanitizeGeneForm(form).toUpperCase());
+                GeneForm geneForm = (form == null)
+                        ? GeneForm.PROTEIN
+                            : GeneForm.valueOf(CtdUtil.sanitizeGeneForm(form).toUpperCase());
 
                 Class<? extends SimplePhysicalEntity> eClass = geneForm.getEntityClass();
                 Class<? extends EntityReference> refClass = geneForm.getReferenceClass();
@@ -502,21 +490,24 @@ public class CTDInteractionConverter extends Converter {
             Class<? extends EntityReference> referenceClass,
             boolean createNewEntity
     ) {
-        String actorTypeId = actorType.getId();
-
         String form = actorType.getForm();
         Actor actor = CtdUtil.extractActor(actorType);
-        // Override all forms of chemicals (none || analog)
+
+        // Override all forms of chemical type (none || analog)
         if(actor.equals(Actor.CHEMICAL)) {
             form = "chemical";
         }
-        // If we still don't have any forms, then it means it is a gene, hence we need a protein by default
-        if((form == null || form.isEmpty()) && actor.equals(Actor.GENE)) {
+
+        if((form==null) && actor.equals(Actor.GENE)) {
             form = "protein";
         }
-        if(form == null) { form = "chemical"; }
-        String refId = CtdUtil.createRefId(form.toUpperCase(), actorTypeId);
 
+        if(form==null) {
+            form = "chemical";
+        }
+
+        String actorTypeId = actorType.getId();
+        String refId = CtdUtil.sanitizeId("ref_" + form + "_" + actorTypeId);
         String entityId = CtdUtil.sanitizeId(actorTypeId + "_" + form
                 + (createNewEntity ? "_" + UUID.randomUUID() : ""));
 
@@ -525,6 +516,17 @@ public class CTDInteractionConverter extends Converter {
             entityReference = create(referenceClass, refId);
             transferNames(actorType, entityReference);
             model.add(entityReference);
+            //TODO: set organism property from ixn taxon
+            //add Xref
+            String rxUri = absoluteUri(CtdUtil.sanitizeId("rx_" + actorTypeId));
+            RelationshipXref rx = (RelationshipXref)model.getByID(rxUri);
+            if(rx == null) {
+                rx = model.addNew(RelationshipXref.class, rxUri);
+                String[] t = actorTypeId.split(":");
+                rx.setDb(("GENE".equalsIgnoreCase(t[0])) ? "NCBI Gene" : t[0]);
+                rx.setId(t[1]);
+            }
+            entityReference.addXref(rx);
         }
 
         SimplePhysicalEntity simplePhysicalEntity = (SimplePhysicalEntity) model.getByID(absoluteUri(entityId));

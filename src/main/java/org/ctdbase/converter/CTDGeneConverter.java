@@ -75,7 +75,7 @@ public class CTDGeneConverter extends Converter {
         String[] pharmGKBIds = tokens[6].split(INTRA_FIELD_SEPARATOR);
         String[] uniprotIds = tokens[7].split(INTRA_FIELD_SEPARATOR);
 
-        String uri = CtdUtil.createRefId(geneForm.toString(), "gene:" + geneID);
+        String uri = CtdUtil.sanitizeId("ref_" +  geneForm + "_gene:" + geneID);
         EntityReference entityReference = (EntityReference) model.getByID(absoluteUri(uri));
         if(entityReference != null) {
             log.warn("Already had the gene " + geneID + ". Skipping it.");

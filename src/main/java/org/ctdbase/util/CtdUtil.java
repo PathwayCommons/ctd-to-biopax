@@ -95,8 +95,8 @@ public class CtdUtil {
                 log.error("Nested item with unexpected class: " + value.getClass().getSimpleName());
             }
         }
-
-        ixnType.setId(actor.getId().hashCode());
+//        ixnType.setId(actor.getId().hashCode());
+        ixnType.setId(Long.parseLong(actor.getId()));
 
         return ixnType;
     }
@@ -115,14 +115,15 @@ public class CtdUtil {
     }
 
     public static String sanitizeId(String str) {
-        try {
-            String uri = URLEncoder.encode(str, "UTF-8");
-            uri = uri.replaceAll("[^-\\w]", "_"); //this e.g. removes '+' signs, if any
-            return uri;
-        } catch (UnsupportedEncodingException e) {
-            log.error("Problem encoding the ID: " + e.getMessage());
-            return str;
-        }
+//        try {
+//            String uri = URLEncoder.encode(str, "UTF-8");
+//            uri = uri.replaceAll("[^-\\w]", "_"); //this e.g. removes '+' signs, if any
+//            return uri;
+            return str.replaceAll("[^-\\w]", "_");  //removes '+',':', spaces, etc.
+//        } catch (UnsupportedEncodingException e) {
+//            log.error("Problem encoding the ID: " + e.getMessage());
+//            return str;
+//        }
     }
 
     public static String sanitizeGeneForm(String form) {
@@ -133,9 +134,4 @@ public class CtdUtil {
                 .replaceAll("5", "FIVE")
                 ;
     }
-
-    public static String createRefId(String form, String actorId) {
-        return sanitizeId("ref_" + form + "_" + actorId);
-    }
-
 }
