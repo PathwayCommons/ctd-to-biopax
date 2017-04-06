@@ -50,7 +50,8 @@ public class CTDChemicalConverter extends Converter {
             String[] synonyms = nextLine[7].split(INTRA_FIELD_SEPARATOR);
             String[] dbIds = nextLine[8].split(INTRA_FIELD_SEPARATOR);
 
-            String rdfId = CtdUtil.sanitizeId("ref_chemical_" + chemicalId);
+            String rdfId = CtdUtil.sanitizeId("ref_chemical_" + chemicalId.toLowerCase());
+
             SmallMoleculeReference smallMoleculeReference = (SmallMoleculeReference) model.getByID(absoluteUri(rdfId));
             if(smallMoleculeReference != null) {
                 log.warn("We already added chemical " + chemicalId + ". Skipping it.");
@@ -103,6 +104,8 @@ public class CTDChemicalConverter extends Converter {
         model.add(rxref);
         return null;
     }
+
+    //TODO: switch to using createXref(..) method from the base class
 
     private RelationshipXref createCASXref(Model model, String casRN) {
         String uri = CtdUtil.sanitizeId("rxref_" + casRN + "_" + UUID.randomUUID());

@@ -75,13 +75,15 @@ public class CTDGeneConverter extends Converter {
         String[] pharmGKBIds = tokens[6].split(INTRA_FIELD_SEPARATOR);
         String[] uniprotIds = tokens[7].split(INTRA_FIELD_SEPARATOR);
 
-        String uri = CtdUtil.sanitizeId("ref_" +  geneForm + "_gene:" + geneID);
-        EntityReference entityReference = (EntityReference) model.getByID(absoluteUri(uri));
+        String rdfId = CtdUtil.sanitizeId("ref_" +  geneForm.toString().toLowerCase()
+                + "_gene_" + geneID.toLowerCase());
+
+        EntityReference entityReference = (EntityReference) model.getByID(absoluteUri(rdfId));
         if(entityReference != null) {
             log.warn("Already had the gene " + geneID + ". Skipping it.");
             return null;
         }
-        entityReference = create(aClass, uri);
+        entityReference = create(aClass, rdfId);
 
         entityReference.setStandardName(geneSymbol);
         entityReference.setDisplayName(geneSymbol);
@@ -108,18 +110,5 @@ public class CTDGeneConverter extends Converter {
                 entityReference.addXref(createXref(model, xrefClass, db, id));
             }
         }
-    }
-
-    private Xref createXref(Model model, Class<? extends Xref> xrefClass, String db, String id) {
-        String rdfId = CtdUtil.sanitizeId(xrefClass.getSimpleName().toLowerCase() + "_" + db + ":" + id );
-        Xref xref = (Xref) model.getByID(absoluteUri(rdfId));
-        if(xref == null) {
-            xref = create(xrefClass, rdfId);
-            xref.setDb(db);
-            xref.setId(id);
-            model.add(xref);
-        }
-
-        return xref;
     }
 }

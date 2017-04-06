@@ -21,30 +21,40 @@ public class CtdUtil {
     private static ObjectFactory ctdFactory = new ObjectFactory();
 
     public static String extractName(IxnType ixn) {
-        List<AxnType> axns = ixn.getAxn();
-        String actionStr = axns.isEmpty() ? "n/a" : axns.iterator().next().getValue();
+        return extractName(ixn, false);
+    }
+
+    public static String extractName(IxnType ixn, boolean skipControl)
+    {
+        AxnCode axnCode = extractAxnCode(ixn);
+
+        String actionStr = (skipControl)
+            ? axnCode.getTypeName() + " of"
+            : ( ixn.getAxn().isEmpty() ? "n/a" : ixn.getAxn().iterator().next().getValue() );
+        //- only the first axn is used here...
 
         String completeName = "";
-        AxnCode axnCode = extractAxnCode(ixn);
         switch (axnCode) {
             case B:
             case W:
                 Iterator<ActorType> iterator = ixn.getActor().iterator();
                 assert iterator.hasNext();
-                completeName = extractName(iterator.next()) + " " + actionStr + " ";
+                String fName = extractName(iterator.next());
+                completeName = ((skipControl)?"":fName) + " " + actionStr;
                 while(iterator.hasNext()) {
-                    completeName += extractName(iterator.next()) + ", ";
+                    completeName += " " + extractName(iterator.next()) + ",";
                 }
-                completeName = completeName.substring(0, completeName.length()-2);
+                completeName = completeName.substring(0, completeName.length()-1);
                 break;
             default:
                 if(ixn.getActor().size() > 0) {
-                    String fName = CtdUtil.extractName(ixn.getActor().get(0));
+                    fName = CtdUtil.extractName(ixn.getActor().get(0));
                     String sName = CtdUtil.extractName(ixn.getActor().get(1));
-                    completeName = fName + " " + actionStr + " " + sName;
+                    completeName = ((skipControl)? "" : fName + " ") + actionStr + " " + sName;
                 } else {
                     completeName = "n/a";
                 }
+                break;
         }
 
         return completeName;
@@ -115,15 +125,7 @@ public class CtdUtil {
     }
 
     public static String sanitizeId(String str) {
-//        try {
-//            String uri = URLEncoder.encode(str, "UTF-8");
-//            uri = uri.replaceAll("[^-\\w]", "_"); //this e.g. removes '+' signs, if any
-//            return uri;
             return str.replaceAll("[^-\\w]", "_");  //removes '+',':', spaces, etc.
-//        } catch (UnsupportedEncodingException e) {
-//            log.error("Problem encoding the ID: " + e.getMessage());
-//            return str;
-//        }
     }
 
     public static String sanitizeGeneForm(String form) {

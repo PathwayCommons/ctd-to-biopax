@@ -3,6 +3,8 @@ package org.ctdbase.converter;
 import org.biopax.paxtools.model.BioPAXElement;
 import org.biopax.paxtools.model.BioPAXLevel;
 import org.biopax.paxtools.model.Model;
+import org.biopax.paxtools.model.level3.Xref;
+import org.ctdbase.util.CtdUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,4 +38,16 @@ public abstract class Converter {
 
     // a public abstract method to be implemented:
     public abstract Model convert(InputStream inputStream) throws IOException;
+
+    protected <T extends Xref>  Xref createXref(Model model, Class<T> xrefClass, String db, String id) {
+        String rdfId = CtdUtil.sanitizeId(xrefClass.getSimpleName().toLowerCase() + "_" + db + "_" + id );
+        T xref = (T) model.getByID(absoluteUri(rdfId));
+        if(xref == null) {
+            xref = create(xrefClass, rdfId);
+            xref.setDb(db);
+            xref.setId(id);
+            model.add(xref);
+        }
+        return xref;
+    }
 }
