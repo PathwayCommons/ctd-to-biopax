@@ -51,7 +51,7 @@ public class CTDInteractionConverter extends Converter {
         List<ActorType> actors = ixn.getActor();
 
         if(actors.size() < 2) {
-            log.warn("Ixn #" + ixn.getId() + " has less than two actors; skipping this reaction.");
+            log.warn("Ixn #" + ixn.getId() + " has less than two actors; skipping.");
             return null;
         }
 
@@ -65,7 +65,7 @@ public class CTDInteractionConverter extends Converter {
                 }
             }
             if(skip) {
-                log.info("Ixn #" + ixn.getId() + " is NOT about taxonomy:" + taxId + "; skipping.");
+                log.debug("Ixn #" + ixn.getId() + " is NOT about taxonomy:" + taxId + "; skipping.");
                 return null;
             }
         }
@@ -125,7 +125,7 @@ public class CTDInteractionConverter extends Converter {
         Process process = (Process) model.getByID(absoluteUri(processId));
 
         if(process != null) {
-            log.info("createProcessFromAction, found previously created " +
+            log.info("found previously created " +
                     process.getModelInterface().getSimpleName() + " process: " + processId);
             return process;
         }
@@ -135,16 +135,16 @@ public class CTDInteractionConverter extends Converter {
                 process = createExpressionReaction(model, ixn, actor, processId);
                 break;
             case ACT:
-                process = createModificationReaction(model, actor, processId, "inactive", "active");
+                process = createModificationReaction(model, ixn, actor, processId, "inactive", "active");
                 break;
             case MUT:
-                process = createModificationReaction(model, actor, processId, "wildtype", "mutated");
+                process = createModificationReaction(model, ixn, actor, processId, "wildtype", "mutated");
                 break;
             case SPL: // splicing
-                process = createModificationReaction(model, actor, processId, null, "spliced");
+                process = createModificationReaction(model, ixn, actor, processId, null, "spliced");
                 break;
             case STA: // stability
-                process = createModificationReaction(model, actor, processId, "instable", "stable");
+                process = createModificationReaction(model, ixn, actor, processId, "instable", "stable");
                 break;
             // The following are all metabolic reactions identified by the PTM name
             // So we will just use the modifier name generically for all these
@@ -180,28 +180,25 @@ public class CTDInteractionConverter extends Converter {
             case SUM:
             case UBQ:
             case CLV:
-                process = createModificationReaction(model, actor, processId, null, axnCode.getTypeName());
+                process = createModificationReaction(model, ixn, actor, processId, null, axnCode.getTypeName());
                 break;
             case DEG:
             case HYD:
-                // general degredation
-                process = createDegradationReaction(model, actor, processId);
+                process = createDegradationReaction(model, ixn, actor, processId);
                 break;
             case RXN: // Reaction (or Control with TemplateReaction)
-                log.info("createProcessFromAction (RXN ), new process: " + processId);
-                ixn = CtdUtil.convertActorToIxn(actor); //extract the new ixn (of the sub-process)
-                process = convertInteraction(model, ixn);
+                process = convertRxnSubProcess(model, ixn, actor, processId);
                 break;
             case EXT:
             case SEC:
-                process = createTransportReaction(model, actor, processId, null, "extracellular matrix");
+                process = createTransportReaction(model, ixn, actor, processId, null, "extracellular matrix");
                 break;
             case UPT:
             case IMT:
-                process = createTransportReaction(model, actor, processId, "extracellular matrix", null);
+                process = createTransportReaction(model, ixn, actor, processId, "extracellular matrix", null);
                 break;
             case CSY:
-                process = createSynthesisReaction(model, actor, processId);
+                process = createSynthesisReaction(model, ixn, actor, processId);
                 break;
             case B:
                 process = createBindingReaction(model, ixn);
@@ -213,19 +210,30 @@ public class CTDInteractionConverter extends Converter {
             case LOC: // localization
             case REC: // Response to substance
             default:
-                log.info("createProcessFromAction, for a " + axnCode.getTypeName() + " reaction, " +
-                    "created a blackbox pathway (" + processId + ") for interaction #" + ixn.getId());
-                process = create(Pathway.class, processId);
-                model.add(process);
+                log.info("for a " + axnCode.getTypeName() + ", ixn #" + ixn.getId() +
+                        ", creating blackbox: " + processId);
+                process = createReaction(model, ixn, actor, processId);
                 break;
         }
 
-        process.addComment(axnCode.getDescription());
+        if(process != null && axnCode!= null)
+            process.addComment(axnCode.getDescription());
 
-        if(!(process instanceof Control))
-            setNameFromIxnType(ixn, process,
-                    process instanceof ComplexAssembly);
+        return process;
+    }
 
+    private Process convertRxnSubProcess(Model model, IxnType ixn, ActorType actor, String processId) {
+        Process process;
+        Actor aType = CtdUtil.extractActor(actor);
+        if(aType == Actor.IXN) {
+            log.info("(RXN) creting sub-process(es), using rdfId: " + processId);
+            IxnType subIxn = CtdUtil.convertActorToIxn(actor); //extract the new ixn (of the sub-process)
+            process = convertInteraction(model, subIxn);
+        } else {
+            log.info("for actor " + aType + ", " + actor.getId()  + " in the rxn ixn #"
+                    + ixn.getId() + ", creating a blackbox: " + processId);
+            process = createReaction(model, ixn, actor, processId);
+        }
         return process;
     }
 
@@ -241,6 +249,7 @@ public class CTDInteractionConverter extends Converter {
         ComplexAssembly complexAssembly = (ComplexAssembly) model.getByID(absoluteUri(processId));
         if(complexAssembly == null) {
             complexAssembly = create(ComplexAssembly.class, processId);
+            setNameFromIxnType(ixn, complexAssembly, true);
             complexAssembly.addLeft(spe1);
             complexAssembly.addLeft(spe2);
             complexAssembly.addRight(complex);
@@ -251,43 +260,65 @@ public class CTDInteractionConverter extends Converter {
         return complexAssembly;
     }
 
-    private Process createDegradationReaction(Model model, ActorType actor, String processId) {
-        Degradation degradation = create(Degradation.class, processId);
-        SimplePhysicalEntity par = createSPEFromActor(model, actor, false);
-        degradation.addLeft(par);
-        degradation.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
-        model.add(degradation);
+    private Process createDegradationReaction(Model model, IxnType ixn, ActorType actor, String processId)
+    {
+        Degradation degradation = (Degradation) model.getByID(absoluteUri(processId));
+        if(degradation == null) {
+            degradation = create(Degradation.class, processId);
+            setNameFromIxnType(ixn, degradation, false);
+            SimplePhysicalEntity par = createSPEFromActor(model, actor, false);
+            degradation.addLeft(par);
+            degradation.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
+            model.add(degradation);
+        }
         return degradation;
     }
 
-    private Process createSynthesisReaction(Model model, ActorType actor, String processId) {
-        BiochemicalReaction biochemicalReaction = create(BiochemicalReaction.class, processId);
-        SimplePhysicalEntity rightPar = createSPEFromActor(model, actor, false);
+    private Process createReaction(Model model, IxnType ixn, ActorType actor, String processId) {
+        Conversion react = (Conversion) model.getByID(absoluteUri(processId));
+        if(react == null) {
+            react = create(Conversion.class, processId);
+            setNameFromIxnType(ixn, react, false);
+            SimplePhysicalEntity par = createSPEFromActor(model, actor, false);
+            react.addParticipant(par);
+            model.add(react);
+        }
+        return react;
+    }
 
-        biochemicalReaction.addRight(rightPar);
-        biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
-        model.add(biochemicalReaction);
-
+    private Process createSynthesisReaction(Model model, IxnType ixn, ActorType actor, String processId) {
+        BiochemicalReaction biochemicalReaction = (BiochemicalReaction) model.getByID(absoluteUri(processId));
+        if(biochemicalReaction == null) {
+            biochemicalReaction = create(BiochemicalReaction.class, processId);
+            setNameFromIxnType(ixn, biochemicalReaction, false);
+            SimplePhysicalEntity rightPar = createSPEFromActor(model, actor, false);
+            biochemicalReaction.addRight(rightPar);
+            biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
+            model.add(biochemicalReaction);
+        }
         return biochemicalReaction;
     }
 
-    private Process createTransportReaction(Model model, ActorType actor, String processId, String leftLoc, String rightLoc) {
-        Transport transport = create(Transport.class, processId);
-        SimplePhysicalEntity leftPar = createSPEFromActor(model, actor, false);
-        SimplePhysicalEntity rightPar = createSPEFromActor(model, actor, true);
-        transport.addLeft(leftPar);
-        transport.addRight(rightPar);
-        transport.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
-
-        if(leftLoc != null) {
-            leftPar.setCellularLocation(createCellularLocation(model, leftLoc));
+    private Process createTransportReaction(Model model, IxnType ixn, ActorType actor,
+                                            String processId, String leftLoc, String rightLoc)
+    {
+        Transport transport = (Transport) model.getByID(absoluteUri(processId));
+        if(transport == null) {
+            transport = create(Transport.class, processId);
+            setNameFromIxnType(ixn, transport,false);
+            SimplePhysicalEntity leftPar = createSPEFromActor(model, actor, false);
+            SimplePhysicalEntity rightPar = createSPEFromActor(model, actor, true);
+            transport.addLeft(leftPar);
+            transport.addRight(rightPar);
+            transport.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
+            if (leftLoc != null) {
+                leftPar.setCellularLocation(createCellularLocation(model, leftLoc));
+            }
+            if (rightLoc != null) {
+                rightPar.setCellularLocation(createCellularLocation(model, rightLoc));
+            }
+            model.add(transport);
         }
-
-        if(rightLoc != null) {
-            rightPar.setCellularLocation(createCellularLocation(model, rightLoc));
-        }
-
-        model.add(transport);
 
         return transport;
     }
@@ -306,83 +337,100 @@ public class CTDInteractionConverter extends Converter {
     }
 
 
-    private Process createModificationReaction(Model model, ActorType actor, String processId, String leftTerm, String rightTerm) {
-        BiochemicalReaction biochemicalReaction = create(BiochemicalReaction.class, processId);
-        SimplePhysicalEntity leftPar = createSPEFromActor(model, actor, leftTerm != null);
-        SimplePhysicalEntity rightPar = createSPEFromActor(model, actor, rightTerm != null);
-        biochemicalReaction.addLeft(leftPar);
-        biochemicalReaction.addRight(rightPar);
-        biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
+    private Process createModificationReaction(Model model, IxnType ixn, ActorType actor,
+                                               String processId, String leftTerm, String rightTerm)
+    {
+        BiochemicalReaction biochemicalReaction = (BiochemicalReaction) model.getByID(absoluteUri(processId));
+        if(biochemicalReaction == null) {
+            biochemicalReaction = create(BiochemicalReaction.class, processId);
+            setNameFromIxnType(ixn, biochemicalReaction, false);
+            SimplePhysicalEntity leftPar = createSPEFromActor(model, actor, leftTerm != null);
+            SimplePhysicalEntity rightPar = createSPEFromActor(model, actor, rightTerm != null);
+            biochemicalReaction.addLeft(leftPar);
+            biochemicalReaction.addRight(rightPar);
+            biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
 
-        if(CtdUtil.extractActor(actor).equals(Actor.CHEMICAL)) {
-            if(leftTerm != null) {
-                leftPar.setDisplayName(leftPar.getDisplayName() + " (" + leftTerm + ")");
+            if (CtdUtil.extractActor(actor).equals(Actor.CHEMICAL)) {
+                if (leftTerm != null) {
+                    leftPar.setDisplayName(leftPar.getDisplayName() + " (" + leftTerm + ")");
+                }
+
+                if (rightTerm != null) {
+                    rightPar.setDisplayName(rightPar.getDisplayName() + " (" + rightTerm + ")");
+                }
+            } else {
+                if (leftTerm != null) {
+                    leftPar.addFeature(createModFeature(model, "modl_" + processId, leftTerm));
+                }
+
+                if (rightTerm != null) {
+                    rightPar.addFeature(createModFeature(model, "modr_" + processId, rightTerm));
+                }
             }
 
-            if(rightTerm != null) {
-                rightPar.setDisplayName(rightPar.getDisplayName() + " (" + rightTerm + ")");
-            }
-        } else {
-            if(leftTerm != null) {
-                leftPar.addFeature(createModFeature(model, "modl_" + processId, leftTerm));
-            }
-
-            if(rightTerm != null) {
-                rightPar.addFeature(createModFeature(model, "modr_" + processId, rightTerm));
-            }
+            model.add(biochemicalReaction);
         }
-
-
-        model.add(biochemicalReaction);
 
         return biochemicalReaction;
     }
 
-    private ModificationFeature createModFeature(Model model, String id, String term) {
+    private ModificationFeature createModFeature(Model model, String id, String term)
+    {
         ModificationFeature feature = create(ModificationFeature.class, id);
         SequenceModificationVocabulary modificationVocabulary = create(SequenceModificationVocabulary.class, "seqmod_" + id);
         modificationVocabulary.addTerm(term);
         feature.setModificationType(modificationVocabulary);
         model.add(feature);
         model.add(modificationVocabulary);
-
         return feature;
     }
 
     private Process createExpressionReaction(Model model, IxnType ixn, ActorType actorType, String processId) {
-        TemplateReaction templateReaction = create(TemplateReaction.class, processId);
-        templateReaction.setTemplateDirection(TemplateDirectionType.FORWARD); // Expression is always forward
-        Actor actor = CtdUtil.extractActor(actorType);
+        Process process;
+        final Actor actor = CtdUtil.extractActor(actorType);
         switch (actor) {
             case IXN:
-                log.error("Found an expression reaction with the second " +
-                        "actor also a reaction, which is ambigous: #"
-                        + ixn.getId() + ". Created an incomplete template reaction.");
+                log.warn("An expression reaction with the second " +
+                        "actor also a reaction, ixn #" + ixn.getId() + "; will do like for RXN");
+
+                process = convertRxnSubProcess(model, ixn, actorType, processId);
                 break;
             default:
-                SimplePhysicalEntity actorEntity = createSPEFromActor(model, actorType, false);
-                templateReaction.addProduct(actorEntity);
-                model.add(templateReaction);
+                TemplateReaction templateReaction = (TemplateReaction) model.getByID(absoluteUri(processId));
+                if(templateReaction==null) {
+                    templateReaction = create(TemplateReaction.class, processId);
+                    setNameFromIxnType(ixn, templateReaction, false);
+                    templateReaction.setTemplateDirection(TemplateDirectionType.FORWARD); // Expression is always forward
+                    SimplePhysicalEntity actorEntity = createSPEFromActor(model, actorType, false);
+                    templateReaction.addProduct(actorEntity);
+                    model.add(templateReaction);
+                }
+                process = templateReaction;
                 break;
         }
-        return templateReaction;
+
+        return process;
     }
 
     private Control createControlFromActor(Model model, Process controlled, IxnType ixn, ActorType actor)
     {
-        Control control;
+        String rdfId = "control_" + ixn.getId();
+        Control control = (Control) model.getByID(absoluteUri(rdfId));
 
-        if(controlled instanceof TemplateReaction)
-            control = create(TemplateReactionRegulation.class, "regulation_" + ixn.getId());
-        else
-            control = create(Control.class, "control_" + ixn.getId());
+        if(control == null) {
+            if (controlled instanceof TemplateReaction)
+                control = create(TemplateReactionRegulation.class, rdfId);
+            else {
+                control = create(Control.class, rdfId);
+            }
 
-        setNameFromIxnType(ixn, control);
+            setNameFromIxnType(ixn, control);
 
-        for (Controller controller : createControllersFromActor(model, actor)) {
-            control.addController(controller);
+            for (Controller controller : createControllersFromActor(model, actor)) {
+                control.addController(controller);
+            }
+            model.add(control);
         }
-        model.add(control);
 
         return control;
     }
@@ -402,14 +450,15 @@ public class CTDInteractionConverter extends Converter {
                         break;
                     default:
                         Process proc = convertInteraction(model, ixnType);
-//                        if(proc != null) {
-                            //TODO: does the controller pathway have to contain the process in it?
-                            Pathway pathway = create(Pathway.class, actor.getId());
-                            setNameFromActor(actor, pathway);
-                            model.add(pathway);
-//                            pathway.addPathwayComponent(proc);
-                            controllers.add(pathway);
-//                        }
+                        //controller pathway to contain the process(es)
+                        Pathway pathway = create(Pathway.class, "controller_pathway_" + actor.getId());
+                        setNameFromActor(actor, pathway);
+                        pathway.addPathwayComponent(proc);
+                        if(proc instanceof Control)
+                            for(Process subproc : ((Control) proc).getControlled())
+                                pathway.addPathwayComponent(subproc);
+                        model.add(pathway);
+                        controllers.add(pathway);
                 }
                 break;
             default: // If not an IXN, then it is a physical entity
@@ -509,10 +558,14 @@ public class CTDInteractionConverter extends Converter {
             String rxUri = absoluteUri(CtdUtil.sanitizeId("rx_" + actorTypeId.toLowerCase()));
             RelationshipXref rx = (RelationshipXref)model.getByID(rxUri);
             if(rx == null) {
-                rx = model.addNew(RelationshipXref.class, rxUri);
-                String[] t = actorTypeId.split(":");
-                rx.setDb(("gene".equalsIgnoreCase(t[0])) ? "NCBI Gene" : t[0]);
-                rx.setId(t[1]);
+                if(actorTypeId.contains(":")) {
+                    rx = model.addNew(RelationshipXref.class, rxUri);
+                    String[] t = actorTypeId.split(":");
+                    rx.setDb(("gene".equalsIgnoreCase(t[0])) ? "NCBI Gene" : t[0]);
+                    rx.setId(t[1]);
+                } else {
+                    log.warn("Cannot make RX for ER " + refId + " due to no ':' in actor.id=" + actorTypeId);
+                }
             }
             entityReference.addXref(rx);
         }

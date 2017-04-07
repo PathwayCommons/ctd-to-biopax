@@ -60,9 +60,9 @@ public class CtdUtil {
         return completeName;
     }
 
-    public static String extractName(ActorType actor) {
+    public static String extractName(ActorType actor)
+    {
         List<Serializable> serializableList = actor.getContent();
-        assert !serializableList.isEmpty();
 
         String formStr = actor.getForm();
         if(formStr != null) {
@@ -71,10 +71,15 @@ public class CtdUtil {
             formStr = "";
         }
 
-        return serializableList.size() == 1
-                ? serializableList.iterator().next().toString() + formStr
-                : "[" + extractName(convertActorToIxn(actor)) + "]";
+        String name = "";
+        if(serializableList.isEmpty()) {
+            name = actor.getId();
+        } else if(serializableList.size() == 1)
+            name = serializableList.iterator().next().toString() + formStr;
+        else
+            name = "[" + extractName(convertActorToIxn(actor)) + "]";
 
+        return name;
     }
 
     public static AxnCode extractAxnCode(AxnType axnType) {
@@ -90,11 +95,16 @@ public class CtdUtil {
         }
     }
 
-    public static IxnType convertActorToIxn(ActorType actor) {
+    public static IxnType convertActorToIxn(ActorType actor)
+    {
+        assert actor.getType().equalsIgnoreCase("ixn") : "not IXN actor inside RXN";
+
         IxnType ixnType = ctdFactory.createIxnType();
 
-        for (Serializable item : actor.getContent()) {
-            if(!(item instanceof JAXBElement)) { continue; }
+        for (Serializable item : actor.getContent())
+        {
+            if(!(item instanceof JAXBElement))
+                continue;
 
             Object value = ((JAXBElement) item).getValue();
             if(value instanceof ActorType) {
@@ -105,8 +115,9 @@ public class CtdUtil {
                 log.error("Nested item with unexpected class: " + value.getClass().getSimpleName());
             }
         }
-//        ixnType.setId(actor.getId().hashCode());
+
         ixnType.setId(Long.parseLong(actor.getId()));
+//        ixnType.setId(actor.getId().hashCode());
 
         return ixnType;
     }
