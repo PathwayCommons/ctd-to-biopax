@@ -7,143 +7,155 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 <!-- human -->
 
-    <ixn id="4963086">
-        <taxon id="9606">Homo sapiens</taxon><reference pmid="25119042"/>
-        <axn code="exp" degreecode="-" position="1" parentid="4963086">results in decreased expression of</axn>
-        <actor type="chemical" id="MESH:C506614" parentid="4963086" position="1">PD 0325901</actor>
-        <actor type="gene" id="GENE:5178" parentid="4963086" form="mRNA" position="2">PEG3</actor>
-    </ixn>
-    <ixn id="5138172">
-        <taxon id="9606">Homo sapiens</taxon><reference pmid="25435355"/>
-        <axn code="mut" degreecode="+" position="1" parentid="5138172">results in increased mutagenesis of</axn>
-        <actor type="chemical" id="MESH:D001564" parentid="5138172" position="1">Benzo(a)pyrene</actor>
-        <actor type="gene" id="GENE:84804" parentid="5138172" form="gene" position="2" seqid="ENSG00000135953">MFSD9</actor>
-    </ixn>
-    <ixn id="3985824">
-        <taxon id="9606">Homo sapiens</taxon><reference pmid="22210228"/>
-        <axn code="spl" degreecode="+" position="1" parentid="3985824">results in increased splicing of</axn>
-        <actor type="chemical" id="MESH:C518327" parentid="3985824" position="1">aloe emodin</actor>
-        <actor type="gene" id="GENE:7494" parentid="3985824" form="mRNA" position="2">XBP1</actor>
-    </ixn>
-    <ixn id="4695456">
-        <taxon id="9606">Homo sapiens</taxon><reference pmid="25493608"/>
-        <axn code="sta" degreecode="+" position="1" parentid="4695456">results in increased stability of</axn>
-        <actor type="chemical" id="MESH:C017947" parentid="4695456" position="1">sodium arsenite</actor>
-        <actor type="gene" id="GENE:1326" parentid="4695456" form="mRNA" position="2" seqid="205027_s_at">MAP3K8</actor>
-    </ixn>
-    <!--metabolic reaction codes: ace,acy,..,clv,..ubq -->
-    <ixn id="4246441">
-        <taxon id="9606">Homo sapiens</taxon><reference pmid="19459041"/>
-        <axn code="clv" degreecode="+" position="1" parentid="4246441">results in increased cleavage of</axn>
-        <actor type="chemical" id="MESH:C009131" parentid="4246441" position="1">pyrimidin-2-one beta-ribofuranoside</actor>
-        <actor type="gene" id="GENE:142" parentid="4246441" form="protein" position="2">PARP1</actor>
-    </ixn>
-    <!--codes: deg,hyd-->
-    <ixn id="4047259">
-        <taxon id="9606">Homo sapiens</taxon><reference pmid="21317540"/>
-        <axn code="deg" degreecode="+" position="1" parentid="4047259">results in increased degradation of</axn>
-        <actor type="chemical" id="MESH:D003474" parentid="4047259" position="1">Curcumin</actor>
-        <actor type="gene" id="GENE:7361" parentid="4047259" form="protein" position="2">UGT1A</actor>
-    </ixn>
-    <ixn id="3644789">
-        <!-- NO taxon element here -->
-        <reference pmid="20937349"/>
-        <axn code="sec" degreecode="+" position="1" parentid="3644789">results in increased secretion of</axn>
-        <actor type="chemical" id="MESH:D001548" parentid="3644789" position="1">Benzalkonium Compounds</actor>
-        <actor type="gene" id="GENE:3553" parentid="3644789" form="protein" position="2">IL1B</actor>
-    </ixn>
-    <!--codes: imt,upt-->
-    <ixn id="3418595">
-        <taxon id="9606">Homo sapiens</taxon><reference pmid="20639259"/>
-        <axn code="imt" degreecode="+" position="1" parentid="3418595">results in increased import of</axn>
-        <actor type="gene" id="GENE:6579" parentid="3418595" form="protein" position="1">SLCO1A2</actor>
-        <actor type="chemical" id="MESH:C017296" parentid="3418595" position="2">estrone sulfate</actor>
-    </ixn>
-    <ixn id="3621313">
-        <reference pmid="16168052"/><!-- NO taxon element here; there are other ixns where taxon is defined, e.g., 9606 -->
-        <axn code="csy" degreecode="+" position="1" parentid="3621313">results in increased chemical synthesis of</axn>
-        <actor type="gene" id="GENE:5465" parentid="3621313" form="protein" position="1">PPARA</actor>
-        <actor type="chemical" id="MESH:D008076" parentid="3621313" position="2">Cholesterol, HDL</actor>
-    </ixn>
-    <ixn id="4155754"><taxon id="9606">Homo sapiens</taxon><reference pmid="20699116"/>
-        <axn code="b" degreecode="1" position="1" parentid="4155754">binds to</axn>
-        <actor type="chemical" id="MESH:C031639" parentid="4155754" position="1">caprylic aldehyde</actor>
-        <actor type="gene" id="GENE:221" parentid="4155754" form="protein" position="2">ALDH3B1</actor>
-    </ixn>
-    <ixn id="4463122">
-        <taxon id="9606">Homo sapiens</taxon><reference pmid="15743714"/>
-        <axn code="act" degreecode="+" position="1" parentid="4463122">results in increased activity of</axn>
-        <actor type="chemical" id="MESH:C541131" parentid="4463122" position="1">2,2',3,3',4,4',5-heptachlorobiphenyl</actor>
-        <actor type="gene" id="GENE:1544" parentid="4463122" form="protein" position="2">CYP1A2</actor>
-    </ixn>
-    <ixn id="2540968">
-        <taxon id="9606">Homo sapiens</taxon><reference pmid="16626760"/><reference pmid="9751507"/>
-        <!-- interestingly - TWO axn elements -->
-        <axn code="b" degreecode="1" position="1" parentid="2540968">binds to</axn>
-        <axn code="act" degreecode="+" position="2" parentid="2540968">results in increased activity of</axn>
-        <actor type="chemical" id="MESH:C016340" parentid="2540968" position="1">o,p'-DDT</actor>
-        <actor type="gene" id="GENE:2100" parentid="2540968" form="protein" position="2">ESR2</actor>
-    </ixn>
-    <!--codes: trt,met,abu,fol,loc,rec-->
-    <ixn id="2586462">
-        <!-- several taxon elements; several pubmed refs -->
-        <taxon id="9606">Homo sapiens</taxon><taxon id="10116">Rattus norvegicus</taxon>
-        <reference pmid="16799059"/><reference pmid="24343273"/><reference pmid="20566629"/>
-        <axn code="loc" degreecode="1" position="1" parentid="2586462">affects the localization of</axn>
-        <actor type="chemical" id="MESH:C029892" parentid="2586462" position="1">cupric chloride</actor>
-        <actor type="gene" id="GENE:540" parentid="2586462" form="protein" position="2">ATP7B</actor>
-    </ixn>
+    <!--<ixn id="4963086">-->
+        <!--<taxon id="9606">Homo sapiens</taxon><reference pmid="25119042"/>-->
+        <!--<axn code="exp" degreecode="-" position="1" parentid="4963086">results in decreased expression of</axn>-->
+        <!--<actor type="chemical" id="MESH:C506614" parentid="4963086" position="1">PD 0325901</actor>-->
+        <!--<actor type="gene" id="GENE:5178" parentid="4963086" form="mRNA" position="2">PEG3</actor>-->
+    <!--</ixn>-->
+    <!--<ixn id="5138172">-->
+        <!--<taxon id="9606">Homo sapiens</taxon><reference pmid="25435355"/>-->
+        <!--<axn code="mut" degreecode="+" position="1" parentid="5138172">results in increased mutagenesis of</axn>-->
+        <!--<actor type="chemical" id="MESH:D001564" parentid="5138172" position="1">Benzo(a)pyrene</actor>-->
+        <!--<actor type="gene" id="GENE:84804" parentid="5138172" form="gene" position="2" seqid="ENSG00000135953">MFSD9</actor>-->
+    <!--</ixn>-->
+    <!--<ixn id="3985824">-->
+        <!--<taxon id="9606">Homo sapiens</taxon><reference pmid="22210228"/>-->
+        <!--<axn code="spl" degreecode="+" position="1" parentid="3985824">results in increased splicing of</axn>-->
+        <!--<actor type="chemical" id="MESH:C518327" parentid="3985824" position="1">aloe emodin</actor>-->
+        <!--<actor type="gene" id="GENE:7494" parentid="3985824" form="mRNA" position="2">XBP1</actor>-->
+    <!--</ixn>-->
+    <!--<ixn id="4695456">-->
+        <!--<taxon id="9606">Homo sapiens</taxon><reference pmid="25493608"/>-->
+        <!--<axn code="sta" degreecode="+" position="1" parentid="4695456">results in increased stability of</axn>-->
+        <!--<actor type="chemical" id="MESH:C017947" parentid="4695456" position="1">sodium arsenite</actor>-->
+        <!--<actor type="gene" id="GENE:1326" parentid="4695456" form="mRNA" position="2" seqid="205027_s_at">MAP3K8</actor>-->
+    <!--</ixn>-->
+    <!--&lt;!&ndash;metabolic reaction codes: ace,acy,..,clv,..ubq &ndash;&gt;-->
+    <!--<ixn id="4246441">-->
+        <!--<taxon id="9606">Homo sapiens</taxon><reference pmid="19459041"/>-->
+        <!--<axn code="clv" degreecode="+" position="1" parentid="4246441">results in increased cleavage of</axn>-->
+        <!--<actor type="chemical" id="MESH:C009131" parentid="4246441" position="1">pyrimidin-2-one beta-ribofuranoside</actor>-->
+        <!--<actor type="gene" id="GENE:142" parentid="4246441" form="protein" position="2">PARP1</actor>-->
+    <!--</ixn>-->
+    <!--&lt;!&ndash;codes: deg,hyd&ndash;&gt;-->
+    <!--<ixn id="4047259">-->
+        <!--<taxon id="9606">Homo sapiens</taxon><reference pmid="21317540"/>-->
+        <!--<axn code="deg" degreecode="+" position="1" parentid="4047259">results in increased degradation of</axn>-->
+        <!--<actor type="chemical" id="MESH:D003474" parentid="4047259" position="1">Curcumin</actor>-->
+        <!--<actor type="gene" id="GENE:7361" parentid="4047259" form="protein" position="2">UGT1A</actor>-->
+    <!--</ixn>-->
+    <!--<ixn id="3644789">-->
+        <!--&lt;!&ndash; NO taxon element here &ndash;&gt;-->
+        <!--<reference pmid="20937349"/>-->
+        <!--<axn code="sec" degreecode="+" position="1" parentid="3644789">results in increased secretion of</axn>-->
+        <!--<actor type="chemical" id="MESH:D001548" parentid="3644789" position="1">Benzalkonium Compounds</actor>-->
+        <!--<actor type="gene" id="GENE:3553" parentid="3644789" form="protein" position="2">IL1B</actor>-->
+    <!--</ixn>-->
+    <!--&lt;!&ndash;codes: imt,upt&ndash;&gt;-->
+    <!--<ixn id="3418595">-->
+        <!--<taxon id="9606">Homo sapiens</taxon><reference pmid="20639259"/>-->
+        <!--<axn code="imt" degreecode="+" position="1" parentid="3418595">results in increased import of</axn>-->
+        <!--<actor type="gene" id="GENE:6579" parentid="3418595" form="protein" position="1">SLCO1A2</actor>-->
+        <!--<actor type="chemical" id="MESH:C017296" parentid="3418595" position="2">estrone sulfate</actor>-->
+    <!--</ixn>-->
+    <!--<ixn id="3621313">-->
+        <!--<reference pmid="16168052"/>&lt;!&ndash; NO taxon element here; there are other ixns where taxon is defined, e.g., 9606 &ndash;&gt;-->
+        <!--<axn code="csy" degreecode="+" position="1" parentid="3621313">results in increased chemical synthesis of</axn>-->
+        <!--<actor type="gene" id="GENE:5465" parentid="3621313" form="protein" position="1">PPARA</actor>-->
+        <!--<actor type="chemical" id="MESH:D008076" parentid="3621313" position="2">Cholesterol, HDL</actor>-->
+    <!--</ixn>-->
+    <!--<ixn id="4155754"><taxon id="9606">Homo sapiens</taxon><reference pmid="20699116"/>-->
+        <!--<axn code="b" degreecode="1" position="1" parentid="4155754">binds to</axn>-->
+        <!--<actor type="chemical" id="MESH:C031639" parentid="4155754" position="1">caprylic aldehyde</actor>-->
+        <!--<actor type="gene" id="GENE:221" parentid="4155754" form="protein" position="2">ALDH3B1</actor>-->
+    <!--</ixn>-->
+    <!--<ixn id="4463122">-->
+        <!--<taxon id="9606">Homo sapiens</taxon><reference pmid="15743714"/>-->
+        <!--<axn code="act" degreecode="+" position="1" parentid="4463122">results in increased activity of</axn>-->
+        <!--<actor type="chemical" id="MESH:C541131" parentid="4463122" position="1">2,2',3,3',4,4',5-heptachlorobiphenyl</actor>-->
+        <!--<actor type="gene" id="GENE:1544" parentid="4463122" form="protein" position="2">CYP1A2</actor>-->
+    <!--</ixn>-->
+    <!--<ixn id="2540968">-->
+        <!--<taxon id="9606">Homo sapiens</taxon><reference pmid="16626760"/><reference pmid="9751507"/>-->
+        <!--&lt;!&ndash; interestingly - TWO axn elements &ndash;&gt;-->
+        <!--<axn code="b" degreecode="1" position="1" parentid="2540968">binds to</axn>-->
+        <!--<axn code="act" degreecode="+" position="2" parentid="2540968">results in increased activity of</axn>-->
+        <!--<actor type="chemical" id="MESH:C016340" parentid="2540968" position="1">o,p'-DDT</actor>-->
+        <!--<actor type="gene" id="GENE:2100" parentid="2540968" form="protein" position="2">ESR2</actor>-->
+    <!--</ixn>-->
+    <!--&lt;!&ndash;codes: trt,met,abu,fol,loc,rec&ndash;&gt;-->
+    <!--<ixn id="2586462">-->
+        <!--&lt;!&ndash; several taxon elements; several pubmed refs &ndash;&gt;-->
+        <!--<taxon id="9606">Homo sapiens</taxon><taxon id="10116">Rattus norvegicus</taxon>-->
+        <!--<reference pmid="16799059"/><reference pmid="24343273"/><reference pmid="20566629"/>-->
+        <!--<axn code="loc" degreecode="1" position="1" parentid="2586462">affects the localization of</axn>-->
+        <!--<actor type="chemical" id="MESH:C029892" parentid="2586462" position="1">cupric chloride</actor>-->
+        <!--<actor type="gene" id="GENE:540" parentid="2586462" form="protein" position="2">ATP7B</actor>-->
+    <!--</ixn>-->
 
-    <ixn id="2708433">
-        <taxon id="9606">Homo sapiens</taxon><reference pmid="15016801"/>
-        <axn code="rxn" degreecode="1" position="1" parentid="2708433">affects the reaction</axn>
-        <actor type="gene" id="GENE:7157" parentid="2708433" form="protein" position="1">TP53</actor>
-        <actor type="ixn" id="2708434" parentid="2708433" position="2">
-            <axn code="exp" degreecode="-" position="1" parentid="2708434">results in decreased expression of</axn>
-            <actor type="chemical" id="MESH:D005472" parentid="2708434" position="1">Fluorouracil</actor>
-            <actor type="gene" id="GENE:4678" parentid="2708434" form="mRNA" position="2" seqid="AF035191">NASP</actor>
-        </actor>
-    </ixn>
-    <!-- weird RXN example - the second actor is not ixn type (data error?)-->
-    <ixn id="2575806"><taxon id="9606">Homo sapiens</taxon><reference pmid="16230421"/>
-        <axn code="rxn" degreecode="-" position="1" parentid="2575806">inhibits the reaction</axn>
-        <actor type="chemical" id="MESH:D017313" parentid="2575806" position="1">Fenretinide</actor>
-        <actor type="gene" id="GENE:597" parentid="2575806" form="protein" position="2">BCL2A1</actor>
-    </ixn>
+    <!--<ixn id="2708433">-->
+        <!--<taxon id="9606">Homo sapiens</taxon><reference pmid="15016801"/>-->
+        <!--<axn code="rxn" degreecode="1" position="1" parentid="2708433">affects the reaction</axn>-->
+        <!--<actor type="gene" id="GENE:7157" parentid="2708433" form="protein" position="1">TP53</actor>-->
+        <!--<actor type="ixn" id="2708434" parentid="2708433" position="2">-->
+            <!--<axn code="exp" degreecode="-" position="1" parentid="2708434">results in decreased expression of</axn>-->
+            <!--<actor type="chemical" id="MESH:D005472" parentid="2708434" position="1">Fluorouracil</actor>-->
+            <!--<actor type="gene" id="GENE:4678" parentid="2708434" form="mRNA" position="2" seqid="AF035191">NASP</actor>-->
+        <!--</actor>-->
+    <!--</ixn>-->
+    <!--&lt;!&ndash; weird RXN example - the second actor is not ixn type (data error?)&ndash;&gt;-->
+    <!--<ixn id="2575806"><taxon id="9606">Homo sapiens</taxon><reference pmid="16230421"/>-->
+        <!--<axn code="rxn" degreecode="-" position="1" parentid="2575806">inhibits the reaction</axn>-->
+        <!--<actor type="chemical" id="MESH:D017313" parentid="2575806" position="1">Fenretinide</actor>-->
+        <!--<actor type="gene" id="GENE:597" parentid="2575806" form="protein" position="2">BCL2A1</actor>-->
+    <!--</ixn>-->
 
-    <ixn id="5347210"><taxon id="9606">Homo sapiens</taxon><reference pmid="27188386"/>
-        <axn code="exp" degreecode="+" position="1" parentid="5347210">results in increased expression of</axn>
-        <actor type="ixn" id="5347211" parentid="5347210" position="1">
-            <axn code="w" degreecode="1" position="1" parentid="5347211">co-treated with</axn>
-            <actor type="gene" id="GENE:9241" parentid="5347211" form="protein" position="1">NOG</actor>
-            <actor type="chemical" id="MESH:D014635" parentid="5347211" position="2">Valproic Acid</actor>
-            <actor type="chemical" id="MESH:C516138" parentid="5347211" position="3">(6-(4-(2-piperidin-1-ylethoxy)phenyl))-3-pyridin-4-ylpyrazolo(1,5-a)pyrimidine</actor>
-            <actor type="chemical" id="MESH:C459179" parentid="5347211" position="4">4-(5-benzo(1,3)dioxol-5-yl-4-pyridin-2-yl-1H-imidazol-2-yl)benzamide</actor>
-        </actor>
-        <!--actor element is empty (has no content, only attributes)-->
-        <actor type="gene" id="GENE:266671" parentid="5347210" form="mRNA" position="2" seqid="1560526_at"></actor>
-    </ixn>
+    <!--<ixn id="5347210"><taxon id="9606">Homo sapiens</taxon><reference pmid="27188386"/>-->
+        <!--<axn code="exp" degreecode="+" position="1" parentid="5347210">results in increased expression of</axn>-->
+        <!--<actor type="ixn" id="5347211" parentid="5347210" position="1">-->
+            <!--<axn code="w" degreecode="1" position="1" parentid="5347211">co-treated with</axn>-->
+            <!--<actor type="gene" id="GENE:9241" parentid="5347211" form="protein" position="1">NOG</actor>-->
+            <!--<actor type="chemical" id="MESH:D014635" parentid="5347211" position="2">Valproic Acid</actor>-->
+            <!--<actor type="chemical" id="MESH:C516138" parentid="5347211" position="3">(6-(4-(2-piperidin-1-ylethoxy)phenyl))-3-pyridin-4-ylpyrazolo(1,5-a)pyrimidine</actor>-->
+            <!--<actor type="chemical" id="MESH:C459179" parentid="5347211" position="4">4-(5-benzo(1,3)dioxol-5-yl-4-pyridin-2-yl-1H-imidazol-2-yl)benzamide</actor>-->
+        <!--</actor>-->
+        <!--&lt;!&ndash;actor element is empty (has no content, only attributes)&ndash;&gt;-->
+        <!--<actor type="gene" id="GENE:266671" parentid="5347210" form="mRNA" position="2" seqid="1560526_at"></actor>-->
+    <!--</ixn>-->
 
-    <!-- Pathway or the gene as controller? -
-    [GSTM1 affects the metabolism of Acrylamide] affects (is controller of) the chemical synthesis of N-acetyl-S-(2-carbamoylethyl)cysteine-->
-    <ixn id="3811415"><taxon id="9606">Homo sapiens</taxon><reference pmid="21402133"/>
-        <axn code="csy" degreecode="1" position="1" parentid="3811415">affects the chemical synthesis of</axn>
-        <actor type="ixn" id="3811416" parentid="3811415" position="1">
-            <axn code="met" degreecode="1" position="1" parentid="3811416">affects the metabolism of</axn>
-            <actor type="gene" id="GENE:2944" parentid="3811416" form="gene" formqualifier="polymorphism" position="1">GSTM1</actor>
-            <actor type="chemical" id="MESH:D020106" parentid="3811416" position="2">Acrylamide</actor>
-        </actor>
-        <actor type="chemical" id="MESH:C569465" parentid="3811415" position="2">N-acetyl-S-(2-carbamoylethyl)cysteine</actor>
-    </ixn>
+    <!--&lt;!&ndash; Pathway or the gene as controller? - -->
+    <!--[GSTM1 affects the metabolism of Acrylamide] affects (is controller of) the chemical synthesis of N-acetyl-S-(2-carbamoylethyl)cysteine&ndash;&gt;-->
+    <!--<ixn id="3811415"><taxon id="9606">Homo sapiens</taxon><reference pmid="21402133"/>-->
+        <!--<axn code="csy" degreecode="1" position="1" parentid="3811415">affects the chemical synthesis of</axn>-->
+        <!--<actor type="ixn" id="3811416" parentid="3811415" position="1">-->
+            <!--<axn code="met" degreecode="1" position="1" parentid="3811416">affects the metabolism of</axn>-->
+            <!--<actor type="gene" id="GENE:2944" parentid="3811416" form="gene" formqualifier="polymorphism" position="1">GSTM1</actor>-->
+            <!--<actor type="chemical" id="MESH:D020106" parentid="3811416" position="2">Acrylamide</actor>-->
+        <!--</actor>-->
+        <!--<actor type="chemical" id="MESH:C569465" parentid="3811415" position="2">N-acetyl-S-(2-carbamoylethyl)cysteine</actor>-->
+    <!--</ixn>-->
 
-    <!--see issue #2 (the taxon element was deleted for testing); the first axn code="exp" should probably be "rxn" instead -->
-    <ixn id="3404552"><reference pmid="22102721"/>
-        <axn code="exp" degreecode="1" position="1" parentid="3404552">affects the expression of</axn>
-        <actor type="gene" id="GENE:6624" parentid="3404552" form="mutant form" position="1">FSCN1</actor>
-        <actor type="ixn" id="3404553" parentid="3404552" position="2">
-            <axn code="exp" degreecode="+" position="1" parentid="3404553">results in increased expression of</axn>
-            <actor type="chemical" id="MESH:D013755" parentid="3404553" position="1">Tetradecanoylphorbol Acetate</actor>
-            <actor type="gene" id="GENE:7124" parentid="3404553" form="protein" position="2">TNF</actor>
+    <!--&lt;!&ndash;see issue #2 (the taxon element was deleted for testing); the first axn code="exp" should probably be "rxn" instead &ndash;&gt;-->
+    <!--<ixn id="3404552"><reference pmid="22102721"/>-->
+        <!--<axn code="exp" degreecode="1" position="1" parentid="3404552">affects the expression of</axn>-->
+        <!--<actor type="gene" id="GENE:6624" parentid="3404552" form="mutant form" position="1">FSCN1</actor>-->
+        <!--<actor type="ixn" id="3404553" parentid="3404552" position="2">-->
+            <!--<axn code="exp" degreecode="+" position="1" parentid="3404553">results in increased expression of</axn>-->
+            <!--<actor type="chemical" id="MESH:D013755" parentid="3404553" position="1">Tetradecanoylphorbol Acetate</actor>-->
+            <!--<actor type="gene" id="GENE:7124" parentid="3404553" form="protein" position="2">TNF</actor>-->
+        <!--</actor>-->
+    <!--</ixn>-->
+
+    <!-- should not make a Protein with id: chemical_2788358-->
+    <ixn id="2788357"><taxon id="9606">Homo sapiens</taxon><reference pmid="16214444"/>
+        <axn code="rec" degreecode="1" position="1" parentid="2788357">affects the susceptibility to</axn>
+        <actor type="gene" id="GENE:3673" parentid="2788357" form="gene" formqualifier="SNP" position="1">ITGA2</actor>
+        <actor type="ixn" id="2788358" parentid="2788357" position="2">
+            <axn code="w" degreecode="1" position="1" parentid="2788358">co-treated with</axn>
+            <actor type="chemical" id="MESH:D001241" parentid="2788358" position="1">Aspirin</actor>
+            <actor type="chemical" id="MESH:C055162" parentid="2788358" position="2">clopidogrel</actor>
+            <actor type="chemical" id="MESH:D004837" parentid="2788358" position="3">Epinephrine</actor>
         </actor>
     </ixn>
 
