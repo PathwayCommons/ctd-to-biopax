@@ -2,6 +2,9 @@
 <!--
   The Comparative Toxicogenomics Database (CTD) - http://ctdbase.org/
   ... TEST ...
+
+  Some of commends below were added after discussing with Allan Peter Davis from CTD (ctd-rt@mdibl.com)
+
 -->
 <ixnset xsi:noNamespaceSchemaLocation="http://ctdbase.org/reports/CTD_chem_gene_ixns_structured.xsd"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -65,6 +68,7 @@
         <!--<actor type="gene" id="GENE:5465" parentid="3621313" form="protein" position="1">PPARA</actor>-->
         <!--<actor type="chemical" id="MESH:D008076" parentid="3621313" position="2">Cholesterol, HDL</actor>-->
     <!--</ixn>-->
+    <!--&lt;!&ndash;a molecular interaction (binding)&ndash;&gt;-->
     <!--<ixn id="4155754"><taxon id="9606">Homo sapiens</taxon><reference pmid="20699116"/>-->
         <!--<axn code="b" degreecode="1" position="1" parentid="4155754">binds to</axn>-->
         <!--<actor type="chemical" id="MESH:C031639" parentid="4155754" position="1">caprylic aldehyde</actor>-->
@@ -76,6 +80,7 @@
         <!--<actor type="chemical" id="MESH:C541131" parentid="4463122" position="1">2,2',3,3',4,4',5-heptachlorobiphenyl</actor>-->
         <!--<actor type="gene" id="GENE:1544" parentid="4463122" form="protein" position="2">CYP1A2</actor>-->
     <!--</ixn>-->
+    <!--&lt;!&ndash;Currently, it maps to a ComplexAssembly reaction (makes o,p'-DDT/ESR2 complex); "act" axn is ignored&ndash;&gt;-->
     <!--<ixn id="2540968">-->
         <!--<taxon id="9606">Homo sapiens</taxon><reference pmid="16626760"/><reference pmid="9751507"/>-->
         <!--&lt;!&ndash; interestingly - TWO axn elements &ndash;&gt;-->
@@ -124,17 +129,20 @@
         <!--<actor type="gene" id="GENE:266671" parentid="5347210" form="mRNA" position="2" seqid="1560526_at"></actor>-->
     <!--</ixn>-->
 
-    <!--&lt;!&ndash; Pathway or the gene as controller? - -->
-    <!--[GSTM1 affects the metabolism of Acrylamide] affects (is controller of) the chemical synthesis of N-acetyl-S-(2-carbamoylethyl)cysteine&ndash;&gt;-->
-    <!--<ixn id="3811415"><taxon id="9606">Homo sapiens</taxon><reference pmid="21402133"/>-->
-        <!--<axn code="csy" degreecode="1" position="1" parentid="3811415">affects the chemical synthesis of</axn>-->
-        <!--<actor type="ixn" id="3811416" parentid="3811415" position="1">-->
-            <!--<axn code="met" degreecode="1" position="1" parentid="3811416">affects the metabolism of</axn>-->
-            <!--<actor type="gene" id="GENE:2944" parentid="3811416" form="gene" formqualifier="polymorphism" position="1">GSTM1</actor>-->
-            <!--<actor type="chemical" id="MESH:D020106" parentid="3811416" position="2">Acrylamide</actor>-->
-        <!--</actor>-->
-        <!--<actor type="chemical" id="MESH:C569465" parentid="3811415" position="2">N-acetyl-S-(2-carbamoylethyl)cysteine</actor>-->
-    <!--</ixn>-->
+    <!-- [GSTM1 affects the metabolism of Acrylamide] affects the chemical synthesis of N-acetyl-S-(2-carbamoylethyl)cysteine -
+    in fact, it means: GSTM1 affects (is controller of) the Acrylamide -to- N-acetyl-S-(2-carbamoylethyl)cysteine (AAMA) conversion
+    (metabolism, chemical synthesis)!-->
+    <ixn id="3811415"><taxon id="9606">Homo sapiens</taxon><reference pmid="21402133"/>
+        <axn code="csy" degreecode="1" position="1" parentid="3811415">affects the chemical synthesis of</axn>
+        <actor type="ixn" id="3811416" parentid="3811415" position="1">
+            <axn code="met" degreecode="1" position="1" parentid="3811416">affects the metabolism of</axn>
+            <actor type="gene" id="GENE:2944" parentid="3811416" form="gene" formqualifier="polymorphism" position="1">GSTM1</actor>
+            <!--Acrilamid, the second actor here, is probably the left participant in the 'CSY' conversion AA -to- AAMA-->
+            <actor type="chemical" id="MESH:D020106" parentid="3811416" position="2">Acrylamide</actor>
+        </actor>
+        <!-- the right participant of the AA -to- AAMA conversion process (AA metabolism)-->
+        <actor type="chemical" id="MESH:C569465" parentid="3811415" position="2">N-acetyl-S-(2-carbamoylethyl)cysteine</actor>
+    </ixn>
 
     <!--&lt;!&ndash;see issue #2 (the taxon element was deleted for testing); the first axn code="exp" should probably be "rxn" instead &ndash;&gt;-->
     <!--<ixn id="3404552"><reference pmid="22102721"/>-->
@@ -147,7 +155,7 @@
         <!--</actor>-->
     <!--</ixn>-->
 
-    <!--&lt;!&ndash; should not make a Protein with id: chemical_2788358&ndash;&gt;-->
+     <!--should not make a Protein with id: chemical_2788358-->
     <!--<ixn id="2788357"><taxon id="9606">Homo sapiens</taxon><reference pmid="16214444"/>-->
         <!--<axn code="rec" degreecode="1" position="1" parentid="2788357">affects the susceptibility to</axn>-->
         <!--<actor type="gene" id="GENE:3673" parentid="2788357" form="gene" formqualifier="SNP" position="1">ITGA2</actor>-->
@@ -159,6 +167,7 @@
         <!--</actor>-->
     <!--</ixn>-->
 
+    <!--&lt;!&ndash;means: vorinostat results in decreased activity of the HDAC3/NCOR2 complex (not about the complex assembly/binding reaction)&ndash;&gt;-->
     <!--<ixn id="4514393"><taxon id="9606">Homo sapiens</taxon><reference pmid="21548582"/>-->
         <!--<axn code="act" degreecode="-" position="1" parentid="4514393">results in decreased activity of</axn>-->
         <!--<actor type="chemical" id="MESH:C111237" parentid="4514393" position="1">vorinostat</actor>-->
@@ -166,6 +175,16 @@
             <!--<axn code="b" degreecode="1" position="1" parentid="4514394">binds to</axn>-->
             <!--<actor type="gene" id="GENE:8841" parentid="4514394" form="protein" position="1">HDAC3</actor>-->
             <!--<actor type="gene" id="GENE:9612" parentid="4514394" form="protein" position="2">NCOR2</actor>-->
+        <!--</actor>-->
+    <!--</ixn>-->
+    <!--&lt;!&ndash; (made-up test case, not in original CTD data) vorinostat inhibits binding (complex assembly) of HDAC3 to NCOR2 &ndash;&gt;-->
+    <!--<ixn id="45143930"><taxon id="9606">Homo sapiens</taxon><reference pmid="21548582"/>-->
+        <!--<axn code="rxn" degreecode="-" position="1" parentid="45143930">inhibits the reaction</axn>-->
+        <!--<actor type="chemical" id="MESH:C111237" parentid="45143930" position="1">vorinostat</actor>-->
+        <!--<actor type="ixn" id="45143940" parentid="45143930" position="2">-->
+            <!--<axn code="b" degreecode="1" position="1" parentid="45143940">binds to</axn>-->
+            <!--<actor type="gene" id="GENE:8841" parentid="45143940" form="protein" position="1">HDAC3</actor>-->
+            <!--<actor type="gene" id="GENE:9612" parentid="45143940" form="protein" position="2">NCOR2</actor>-->
         <!--</actor>-->
     <!--</ixn>-->
 
@@ -187,6 +206,7 @@
             <!--</actor>-->
         <!--</actor>-->
     <!--</ixn>-->
+    <!--&lt;!&ndash;means: complex assembly (or MI reaction), where neotame binds TAS1R2/TAS1R3 complex to form neotame/TAS1R2/TAS1R3 complex&ndash;&gt;-->
     <!--<ixn id="2669202"><taxon id="9606">Homo sapiens</taxon><reference pmid="17168764"/>-->
         <!--<axn code="b" degreecode="1" position="1" parentid="2669202">binds to</axn>-->
         <!--<actor type="chemical" id="MESH:C404525" parentid="2669202" position="1">neotame</actor>-->
@@ -206,35 +226,44 @@
         <!--<actor type="gene" id="GENE:9965" parentid="4247151" form="promoter" position="2">FGF19</actor>-->
     <!--</ixn>-->
 
-    <ixn id="4247160"><taxon id="9606">Homo sapiens</taxon><reference pmid="22561792"/>
-        <axn code="exp" degreecode="+" position="1" parentid="4247160">results in increased expression of</axn>
-        <actor type="ixn" id="4247161" parentid="4247160" position="1">
-            <axn code="b" degreecode="1" position="1" parentid="4247161">binds to</axn>
-            <actor type="ixn" id="4247162" parentid="4247161" position="1">
-                <axn code="act" degreecode="+" position="1" parentid="4247162">results in increased activity of</axn>
-                <actor type="chemical" id="MESH:D019826" parentid="4247162" position="1">Cholic Acid</actor>
-                <actor type="gene" id="GENE:9971" parentid="4247162" form="protein" position="2">NR1H4</actor>
-            </actor><actor type="gene" id="GENE:9965" parentid="4247161" form="promoter" position="2">FGF19</actor>
-        </actor>
-        <actor type="gene" id="GENE:9965" parentid="4247160" form="mRNA" position="2">FGF19</actor>
-    </ixn>
-    <ixn id="3727084"><reference pmid="16168523"/>
-        <axn code="rec" degreecode="-" position="1" parentid="3727084">results in decreased susceptibility to</axn>
-        <actor type="ixn" id="3727085" parentid="3727084" position="1">
-            <axn code="act" degreecode="-" position="1" parentid="3727085">results in decreased activity of</axn>
-            <actor type="chemical" id="MESH:C093124" parentid="3727085" position="1">2-amino-5,6-dihydro-6-methyl-4H-1,3-thiazine</actor>
-            <actor type="gene" id="GENE:4843" parentid="3727085" form="protein" position="2">NOS2</actor>
-        </actor>
-        <actor type="ixn" id="3727086" parentid="3727084" position="2">
-            <axn code="w" degreecode="1" position="1" parentid="3727086">co-treated with</axn>
-            <actor type="chemical" id="MESH:D008345" parentid="3727086" position="1">Manganese</actor>
-            <actor type="ixn" id="3727087" parentid="3727086" position="2">
-                <axn code="w" degreecode="1" position="1" parentid="3727087">co-treated with</axn>
-                <actor type="gene" id="GENE:7124" parentid="3727087" form="protein" position="1">TNF</actor>
-                <actor type="gene" id="GENE:3458" parentid="3727087" form="protein" position="2">IFNG</actor>
-            </actor>
-        </actor>
-    </ixn>
+    <!--&lt;!&ndash; Cholic Acid (controller of the activation) results in increased activity of NR1H4 protein,-->
+    <!--which binds to FGF19 promoter, and the [NR1H4 protein/FGF19 promoter complex] (controller of the expression)-->
+    <!--results in increased expression of FGF19 mRNA &ndash;&gt;-->
+    <!--<ixn id="4247160"><taxon id="9606">Homo sapiens</taxon><reference pmid="22561792"/>-->
+        <!--<axn code="exp" degreecode="+" position="1" parentid="4247160">results in increased expression of</axn>-->
+        <!--<actor type="ixn" id="4247161" parentid="4247160" position="1">-->
+            <!--<axn code="b" degreecode="1" position="1" parentid="4247161">binds to</axn>-->
+            <!--<actor type="ixn" id="4247162" parentid="4247161" position="1">-->
+                <!--<axn code="act" degreecode="+" position="1" parentid="4247162">results in increased activity of</axn>-->
+                <!--<actor type="chemical" id="MESH:D019826" parentid="4247162" position="1">Cholic Acid</actor>-->
+                <!--<actor type="gene" id="GENE:9971" parentid="4247162" form="protein" position="2">NR1H4</actor>-->
+            <!--</actor>-->
+            <!--<actor type="gene" id="GENE:9965" parentid="4247161" form="promoter" position="2">FGF19</actor>-->
+        <!--</actor>-->
+        <!--<actor type="gene" id="GENE:9965" parentid="4247160" form="mRNA" position="2">FGF19</actor>-->
+    <!--</ixn>-->
+
+    <!--&lt;!&ndash;2-amino-5,6-dihydro-6-methyl-4H-1,3-thiazine activates NOS2 protein;-->
+    <!--activated NOS2 (controller, response to substance) results in decreased susceptibility to ('w' here means a control or process/pathway)-->
+    <!--Manganese + [TNF + IFNG] co-treatment...-->
+    <!--&ndash;&gt;-->
+    <!--<ixn id="3727084"><reference pmid="16168523"/>-->
+        <!--<axn code="rec" degreecode="-" position="1" parentid="3727084">results in decreased susceptibility to</axn>-->
+        <!--<actor type="ixn" id="3727085" parentid="3727084" position="1">-->
+            <!--<axn code="act" degreecode="-" position="1" parentid="3727085">results in decreased activity of</axn>-->
+            <!--<actor type="chemical" id="MESH:C093124" parentid="3727085" position="1">2-amino-5,6-dihydro-6-methyl-4H-1,3-thiazine</actor>-->
+            <!--<actor type="gene" id="GENE:4843" parentid="3727085" form="protein" position="2">NOS2</actor>-->
+        <!--</actor>-->
+        <!--<actor type="ixn" id="3727086" parentid="3727084" position="2">-->
+            <!--<axn code="w" degreecode="1" position="1" parentid="3727086">co-treated with</axn>-->
+            <!--<actor type="chemical" id="MESH:D008345" parentid="3727086" position="1">Manganese</actor>-->
+            <!--<actor type="ixn" id="3727087" parentid="3727086" position="2">-->
+                <!--<axn code="w" degreecode="1" position="1" parentid="3727087">co-treated with</axn>-->
+                <!--<actor type="gene" id="GENE:7124" parentid="3727087" form="protein" position="1">TNF</actor>-->
+                <!--<actor type="gene" id="GENE:3458" parentid="3727087" form="protein" position="2">IFNG</actor>-->
+            <!--</actor>-->
+        <!--</actor>-->
+    <!--</ixn>-->
 
     <!--another species (must skip) -->
     <ixn id="5328958"><taxon id="10090">Mus musculus</taxon>

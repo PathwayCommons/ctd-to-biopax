@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -80,22 +81,24 @@ public class CtdUtil {
         return name;
     }
 
-    public static AxnCode extractAxnCode(AxnType axnType) {
-        return AxnCode.valueOf(axnType.getCode().toUpperCase());
-    }
-
     public static AxnCode extractAxnCode(IxnType ixn) {
-        if(ixn.getAxn().isEmpty()) {
-            return AxnCode.RXN;//TODO: why not the default (null) or e.g., MET?
+        List<AxnType> axns = ixn.getAxn();
+        if(axns.isEmpty()) {
+            return AxnCode.RXN;
         } else {
-            //TODO: gets only the first axn code (there can be more than one...)
-            return extractAxnCode(ixn.getAxn().iterator().next());
+            if(axns.size() > 1) {
+                log.warn(String.format("IXN #%d has %d axn elements",ixn.getId(),axns.size()));
+            }
+            //TODO: shall we consider converting not only for the first axn code?
+            AxnCode axnCode = AxnCode.valueOf(axns.get(0).getCode().toUpperCase());
+            return axnCode;
         }
     }
 
     public static IxnType convertActorToIxn(ActorType actor)
     {
-        assert actor.getType().equalsIgnoreCase("ixn") : "not IXN actor inside RXN";
+        if(CtdUtil.extractActor(actor) != Actor.IXN)
+            throw new IllegalArgumentException("Actor is not IXN type; id: " + actor.getId());
 
         IxnType ixnType = ctdFactory.createIxnType();
 
