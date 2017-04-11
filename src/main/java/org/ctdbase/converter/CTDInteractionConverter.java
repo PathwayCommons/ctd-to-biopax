@@ -48,6 +48,7 @@ public class CTDInteractionConverter extends Converter {
         } catch (JAXBException e) {
             log.error("Could not initialize the JAXB Reader. ", e);
         }
+
         return model;
     }
 
@@ -294,7 +295,7 @@ public class CTDInteractionConverter extends Converter {
             control = create(Control.class, rdfId);
             setNameFromIxnType(ixn, control);
             for (ActorType actor : ixn.getActor()) {
-                for(Controller c : createControllersFromActor(actor)) {
+                for(Controller c : createControllersFromActor(actor, null)) {
                     control.addController(c);
                 }
             }
@@ -345,7 +346,10 @@ public class CTDInteractionConverter extends Converter {
                     react = create(Conversion.class, processId);
                     setNameFromIxnType(ixn, react, false);
                     SimplePhysicalEntity par = createSPEFromActor(actor, false);
-                    react.addRight(par);
+                    if(axnCode == AxnCode.MET)
+                        react.addLeft(par);
+                    else
+                        react.addRight(par);
                     model.add(react);
                 }
                 process = react;
@@ -508,6 +512,8 @@ public class CTDInteractionConverter extends Converter {
         return process;
     }
 
+    //TODO: will use the axnCode parameter here and elsewhere in the future
+    // (due to multiple axn elements per ixn/actor is possible...)
     private Control createControlFromActor(Process controlled, IxnType ixn, AxnCode axnCode, ActorType actor)
     {
         String rdfId = "process_" + ixn.getId();
@@ -521,7 +527,7 @@ public class CTDInteractionConverter extends Converter {
 
             setNameFromIxnType(ixn, control);
 
-            for (Controller controller : createControllersFromActor(actor)) {
+            for (Controller controller : createControllersFromActor(actor, controlled)) {
                 control.addController(controller);
             }
             model.add(control);
@@ -529,24 +535,36 @@ public class CTDInteractionConverter extends Converter {
         return control;
     }
 
-    private Collection<Controller> createControllersFromActor(ActorType actor) {
+    // controlled process - when this actor is ixn and is inside an outer ixn/actor with e.g., 'csy' type
+    // (controls synthesis, conversion), then the second parameter can be used to set left participant of that proc.
+    private Collection<Controller> createControllersFromActor(ActorType actor, Process controlled) {
         HashSet<Controller> controllers = new HashSet<Controller>();
         switch (CtdUtil.extractActor(actor)) {
             case IXN:
                 IxnType subIxn = CtdUtil.convertActorToIxn(actor);
                 AxnCode axnCode = CtdUtil.extractAxnCode(subIxn);
-//                switch(axnCode) {
-//                    case W:
-//                    case B:
-//                        controllers.addAll(createMultipleControllers(subIxn));
-//                        break;
-//                    default:
-                        Process process = convertInteraction(subIxn);
-                        for(PhysicalEntity pe : getProductsFromProcess(process)) {
-                            controllers.add(pe);
+                Process process = convertInteraction(subIxn);
+
+                for (PhysicalEntity pe : getProductsFromProcess(process)) {
+                    controllers.add(pe);
+                }
+
+                if(process instanceof Control && controllers.isEmpty()) {
+                    Control control = (Control) process;
+                    controllers.addAll(control.getController());
+                    for(Process p : new HashSet<Process>(control.getControlled())) {
+                        if(p instanceof Conversion && axnCode == AxnCode.MET && controlled instanceof Conversion) {
+                            control.removeControlled(p);
+                            model.remove(p); //the outer process - controlled - is the one we keep
+                            for(PhysicalEntity e : ((Conversion)p).getLeft()) {
+                                ((Conversion) controlled).addLeft(e);
+                            }
                         }
-//                        break;
-//                }
+                    }
+                    if(control.getControlled().isEmpty())
+                        model.remove(control);
+                }
+
                 break;
             default: // If not an IXN, then it is a physical entity
                 controllers.add(createSPEFromActor(actor, false));
@@ -581,29 +599,13 @@ public class CTDInteractionConverter extends Converter {
         return spe;
     }
 
-    private Collection<? extends Controller> createMultipleControllers(IxnType ixnType) {
-        HashSet<Controller> controllers = new HashSet<Controller>();
-        for (ActorType actorType : ixnType.getActor()) {
-            controllers.addAll(createControllersFromActor(actorType));
-        }
-        return controllers;
-    }
-
-    //makes a Complex (can be nested) from IXN type 'b' entry
-    private Complex createComplex(IxnType ixn) {
-        Complex complex = create(Complex.class, "complex_" + ixn.getId());
-        String cName = "";
-        for (ActorType actorType : ixn.getActor()) {
-            SimplePhysicalEntity speFromActor = createSPEFromActor(actorType, true);
-            cName += speFromActor.getDisplayName() + " ";
-            complex.addComponent(speFromActor);
-        }
-        cName += "complex";
-        assignName(cName, complex);
-        model.add(complex);
-        return complex;
-    }
-
+//    private Collection<? extends Controller> createMultipleControllers(IxnType ixnType) {
+//        HashSet<Controller> controllers = new HashSet<Controller>();
+//        for (ActorType actorType : ixnType.getActor()) {
+//            controllers.addAll(createControllersFromActor(actorType));
+//        }
+//        return controllers;
+//    }
 
     private SimplePhysicalEntity createEntityFromActor(ActorType actorType,
                                                        Class<? extends SimplePhysicalEntity> entityClass,
