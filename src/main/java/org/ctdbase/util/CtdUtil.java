@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.List;
 
@@ -117,7 +115,6 @@ public class CtdUtil {
         }
 
         ixnType.setId(Long.parseLong(actor.getId()));
-//        ixnType.setId(actor.getId().hashCode());
 
         return ixnType;
     }
@@ -128,7 +125,8 @@ public class CtdUtil {
     }
 
     public static String createProcessId(IxnType ixnType, ActorType actor) {
-        return sanitizeId("process_" + extractAxnCode(ixnType) + "_" + extractName(actor));
+//        return sanitizeId("process_" + extractAxnCode(ixnType) + "_" + extractName(actor));
+        return sanitizeId("process_" + actor.getId());
     }
 
     public static String locationToId(String location) {
