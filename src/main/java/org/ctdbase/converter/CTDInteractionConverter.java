@@ -88,8 +88,8 @@ public class CTDInteractionConverter extends Converter {
             process = createProcessFromAction(ixn, axnCode, null);
         } else {
             if(actors.size() > 2) {
-                log.warn(String.format("Ixn %s has %d actors, but we convert only two..."),
-                        ixn.getId(), actors.size()); //TODO: is that possible?
+                log.warn(String.format("Ixn %s has %d actors, but we convert only two...",
+                        ixn.getId(), actors.size())); //TODO: is that possible?
             }
             process = createProcessFromAction(ixn, axnCode, actors.get(1));
             Control control = createControlFromActor(process, ixn, axnCode, actors.get(0));
