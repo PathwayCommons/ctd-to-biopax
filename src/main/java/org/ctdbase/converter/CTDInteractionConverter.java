@@ -57,8 +57,12 @@ public class CTDInteractionConverter extends Converter {
         List<ActorType> actors = ixn.getActor();
 
         if(actors.size() < 2) {
-            log.warn("Ixn #" + ixn.getId() + " has less than two actors; skipping.");
-            return null;
+            throw new RuntimeException("Ixn #" + ixn.getId() + " has less than two actors, which " +
+                    "violates the CTD XML schema (CTD_chem_gene_ixns_structured.xsd)");
+        }
+
+        if(ixn.getAxn().size() > 1) {
+            log.warn(String.format("IXN #%d has more than one axn",ixn.getId()));
         }
 
         //filter by organism (taxonomy) if needed
@@ -83,6 +87,10 @@ public class CTDInteractionConverter extends Converter {
         if(axnCode.equals(AxnCode.B) || axnCode.equals(AxnCode.W)) {
             process = createProcessFromAction(ixn, axnCode, null);
         } else {
+            if(actors.size() > 2) {
+                log.warn(String.format("Ixn %s has %d actors, but we convert only two..."),
+                        ixn.getId(), actors.size()); //TODO: is that possible?
+            }
             process = createProcessFromAction(ixn, axnCode, actors.get(1));
             Control control = createControlFromActor(process, ixn, axnCode, actors.get(0));
             control.addControlled(process);
@@ -289,9 +297,10 @@ public class CTDInteractionConverter extends Converter {
     }
 
     private Process createBlackboxControlWithoutProducts(IxnType ixn, AxnCode axnCode, String rdfId) {
-        Control control = (Control) model.getByID(absoluteUri(rdfId));
+        Modulation control = (Modulation) model.getByID(absoluteUri(rdfId));
+        //Note: Modulation.controlled property can be either null or a Catalysis
         if(control == null) {
-            control = create(Control.class, rdfId);
+            control = create(Modulation.class, rdfId);
             setNameFromIxnType(ixn, control);
             for (ActorType actor : ixn.getActor()) {
                 for(Controller c : createControllersFromActor(actor, null)) {
@@ -511,8 +520,6 @@ public class CTDInteractionConverter extends Converter {
         return process;
     }
 
-    //TODO: will use the axnCode parameter here and elsewhere in the future
-    // (due to multiple axn elements per ixn/actor is possible...)
     private Control createControlFromActor(Process controlled, IxnType ixn, AxnCode axnCode, ActorType actor)
     {
         String rdfId = String.format("%s_%s", axnCode, ixn.getId());

@@ -86,10 +86,7 @@ public class CtdUtil {
         if(axns.isEmpty()) {
             return AxnCode.RXN;
         } else {
-            if(axns.size() > 1) {
-                log.warn(String.format("IXN #%d has %d axn elements",ixn.getId(),axns.size()));
-            }
-            //TODO: shall we consider converting not only for the first axn code?
+            //TODO: we have to consider using all the axn elements (actions)?
             AxnCode axnCode = AxnCode.valueOf(axns.get(0).getCode().toUpperCase());
             return axnCode;
         }
