@@ -265,6 +265,16 @@
         </actor>
     </ixn>
 
+    <ixn id="4053109"><taxon id="9606">Homo sapiens</taxon><reference pmid="20404318"/>
+        <axn code="rxn" degreecode="+" position="1" parentid="4053109">promotes the reaction</axn>
+        <actor type="chemical" id="MESH:D004958" parentid="4053109" position="1">Estradiol</actor>
+        <actor type="ixn" id="4053110" parentid="4053109" position="2">
+            <axn code="exp" degreecode="1" position="1" parentid="4053110">affects the expression of</axn>
+            <actor type="gene" id="GENE:2100" parentid="4053110" form="protein" position="1">ESR2</actor>
+            <actor type="gene" id="GENE:284439" parentid="4053110" form="mRNA" position="2" seqid="284439">SLC25A42</actor>
+        </actor>
+    </ixn>
+
     <!--another species (must skip) -->
     <ixn id="5328958"><taxon id="10090">Mus musculus</taxon>
         <reference pmid="27167697"/>

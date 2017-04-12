@@ -537,7 +537,8 @@ public class CTDInteractionConverter extends Converter {
             }
             else
             {
-                if(controlType == ControlType.ACTIVATION)
+                //try Catalysis if BioPAX restrictions are satisfied
+                if(controlType == ControlType.ACTIVATION && controlled instanceof Conversion)
                     control = create(Catalysis.class, rdfId);
                 else
                     control = create(Control.class, rdfId);
