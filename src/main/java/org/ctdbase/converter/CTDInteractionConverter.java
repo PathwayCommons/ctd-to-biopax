@@ -57,8 +57,8 @@ public class CTDInteractionConverter extends Converter {
         List<ActorType> actors = ixn.getActor();
 
         if(actors.size() < 2) {
-            throw new RuntimeException("Ixn #" + ixn.getId() + " has less than two actors, which " +
-                    "violates the CTD XML schema (CTD_chem_gene_ixns_structured.xsd)");
+            log.error("Ignored ixn:" + ixn.getId() + ", which has < 2 actors (violates the CTD XML schema)");
+            return null;
         }
 
         if(ixn.getAxn().size() > 1) {
