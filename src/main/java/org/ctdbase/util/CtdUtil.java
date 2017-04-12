@@ -127,11 +127,6 @@ public class CtdUtil {
         return Actor.valueOf(actor.getType().toUpperCase());
     }
 
-    public static String createProcessId(IxnType ixnType, ActorType actor) {
-//        return sanitizeId("process_" + extractAxnCode(ixnType) + "_" + extractName(actor));
-        return sanitizeId("process_" + actor.getId());
-    }
-
     public static String locationToId(String location) {
         return "location_" + sanitizeId(location);
     }
