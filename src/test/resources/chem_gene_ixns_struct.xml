@@ -275,6 +275,16 @@
         </actor>
     </ixn>
 
+    <!--data error (XSD min constraint violated): has to be at least 2 actors-->
+    <ixn id="4841667"><reference pmid="24269741"/>
+        <axn code="act" degreecode="+" position="1" parentid="4841667">results in increased activity of</axn>
+        <actor type="ixn" id="4841668" parentid="4841667" position="1">
+            <axn code="act" degreecode="+" position="1" parentid="4841668">results in increased activity of</axn>
+            <actor type="chemical" id="MESH:D000450" parentid="4841668" position="1">Aldosterone</actor>
+            <actor type="gene" id="GENE:5587" parentid="4841668" form="protein" position="2">PRKD1</actor>
+        </actor>
+    </ixn>
+
     <!--another species (must skip) -->
     <ixn id="5328958"><taxon id="10090">Mus musculus</taxon>
         <reference pmid="27167697"/>
