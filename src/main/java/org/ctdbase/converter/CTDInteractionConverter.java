@@ -575,7 +575,6 @@ public class CTDInteractionConverter extends Converter {
                     for(Process p : new HashSet<Process>(control.getControlled())) {
                         if(p instanceof Conversion && axnCode == AxnCode.MET && controlled instanceof Conversion) {
                             control.removeControlled(p);
-                            model.remove(p); //the outer process - controlled - is the one we keep
                             for(PhysicalEntity e : ((Conversion)p).getLeft()) {
                                 ((Conversion) controlled).addLeft(e);
                             }
