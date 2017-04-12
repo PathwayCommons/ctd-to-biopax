@@ -198,7 +198,7 @@
             <actor type="ixn" id="4071695" parentid="4071694" position="2">
                 <axn code="b" degreecode="1" position="1" parentid="4071695">binds to</axn>
                 <actor type="ixn" id="4071696" parentid="4071695" position="1">
-                    <axn code="w" degreecode="1" position="1" parentid="4071696">co-treated with</axn>
+                    <axn code="b" degreecode="1" position="1" parentid="4071696">co-treated with</axn>
                     <actor type="gene" id="GENE:5970" parentid="4071696" form="protein" position="1">RELA</actor>
                     <actor type="gene" id="GENE:4790" parentid="4071696" form="protein" position="2">NFKB1</actor>
                 </actor>
