@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -19,19 +18,10 @@ public class CtdUtil {
     private static Logger log = LoggerFactory.getLogger(CtdUtil.class);
     private static ObjectFactory ctdFactory = new ObjectFactory();
 
-    public static String extractName(IxnType ixn) {
-        return extractName(ixn, false);
-    }
-
     public static String extractName(IxnType ixn, boolean skipControl)
     {
-        AxnCode axnCode = extractAxnCode(ixn);
-
-        String actionStr = (skipControl)
-            ? axnCode.getTypeName() + " of"
-            : ( ixn.getAxn().isEmpty() ? "n/a" : ixn.getAxn().iterator().next().getValue() );
-        //- only the first axn is used here...
-
+        AxnCode axnCode = axnCode(ixn);
+        String actionStr = (skipControl) ? axnCode.getTypeName() + " of" : axnType(ixn).getValue();
         String completeName = "";
         switch (axnCode) {
             case B:
@@ -76,20 +66,22 @@ public class CtdUtil {
         } else if(serializableList.size() == 1)
             name = serializableList.iterator().next().toString() + formStr;
         else
-            name = "[" + extractName(convertActorToIxn(actor)) + "]";
+            name = "[" + extractName(convertActorToIxn(actor),false) + "]";
 
         return name;
     }
 
-    public static AxnCode extractAxnCode(IxnType ixn) {
-        List<AxnType> axns = ixn.getAxn();
-        if(axns.isEmpty()) {
-            return AxnCode.RXN;
-        } else {
-            //TODO: we have to consider using all the axn elements (actions)?
-            AxnCode axnCode = AxnCode.valueOf(axns.get(0).getCode().toUpperCase());
-            return axnCode;
+    public static AxnCode axnCode(IxnType ixn) {
+        return AxnCode.valueOf(axnType(ixn).getCode().toUpperCase());
+    }
+
+    public static AxnType axnType(IxnType ixn) {
+        if(ixn.getAxn().isEmpty()) {
+            log.error("ixn:" + ixn.getId() + " has no axn (required)");
+            return null;
         }
+        //TODO: consider multiple axn elements?
+        return ixn.getAxn().get(0);
     }
 
     public static IxnType convertActorToIxn(ActorType actor)

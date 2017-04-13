@@ -48,21 +48,22 @@ public class CTDInteractionConverter extends Converter {
         } catch (JAXBException e) {
             log.error("Could not initialize the JAXB Reader. ", e);
         }
-
         return model;
     }
 
-    private Process convertInteraction(IxnType ixn) {
-        // We use the first (0) actor to create a Control interaction
+    private Process convertInteraction(IxnType ixn)
+    {
+        // the first actor is to make a Control process
         List<ActorType> actors = ixn.getActor();
-
         if(actors.size() < 2) {
             log.error("Ignored ixn:" + ixn.getId() + ", which has < 2 actors (violates the CTD XML schema)");
             return null;
+        } else if(actors.size() > 2) {
+            log.warn(String.format("Ixn %s has %d actors, but we convert only two...",
+                    ixn.getId(), actors.size()));
         }
-
         if(ixn.getAxn().size() > 1) {
-            log.warn(String.format("IXN #%d has more than one axn",ixn.getId()));
+            log.warn(String.format("IXN #%d has more than one axn", ixn.getId()));
         }
 
         //filter by organism (taxonomy) if needed
@@ -80,19 +81,12 @@ public class CTDInteractionConverter extends Converter {
             }
         }
 
-        Process process;
+        Process process = createProcessFromAction(ixn);
 
-        AxnCode axnCode = CtdUtil.extractAxnCode(ixn);
-        // Create a Contol if the process is not about binding (axn code 'b') or co-treatment ('w')
-        if(axnCode.equals(AxnCode.B) || axnCode.equals(AxnCode.W)) {
-            process = createProcessFromAction(ixn, axnCode, null);
-        } else {
-            if(actors.size() > 2) {
-                log.warn(String.format("Ixn %s has %d actors, but we convert only two...",
-                        ixn.getId(), actors.size())); //TODO: is that possible?
-            }
-            process = createProcessFromAction(ixn, axnCode, actors.get(1));
-            Control control = createControlFromActor(process, ixn, axnCode, actors.get(0));
+        // Create a Contol unless the process is binding (axn code 'b') or co-treatment ('w') one
+        AxnCode axnCode = CtdUtil.axnCode(ixn);
+        if(!axnCode.equals(AxnCode.B) && !axnCode.equals(AxnCode.W)) {
+            Control control = createControlFromActor(process, ixn);
             control.addControlled(process);
             process = control;
         }
@@ -131,42 +125,41 @@ public class CTDInteractionConverter extends Converter {
         return null;
     }
 
-    private Process createProcessFromAction(IxnType ixn, AxnCode axnCode, ActorType actor)
+    private Process createProcessFromAction(IxnType ixn)
     {
-        //sanity test
-        if(actor==null && axnCode != AxnCode.B && axnCode != AxnCode.W)
-            throw new IllegalArgumentException("ActorType can be null only if axn code is either W or B");
+        AxnCode axnCode = CtdUtil.axnCode(ixn);
+        ActorType actor = ixn.getActor().get(1);
 
-        final String processRdfId = String.format("%s_%s", axnCode,
-                (actor != null) ? CtdUtil.sanitizeId(actor.getId()) : ixn.getId());
+        String processRdfId;
+        if(axnCode == AxnCode.B || axnCode == AxnCode.W)
+            processRdfId = String.format("%s_%s", axnCode, ixn.getId());
+        else
+            processRdfId =  String.format("%s_%s", axnCode, CtdUtil.sanitizeId(actor.getId()));
 
         Process process = (Process) model.getByID(absoluteUri(processRdfId));
         if(process != null) {
-            log.info("got previously created " + process.getModelInterface().getSimpleName() + ": " + processRdfId);
+            log.info("using existing " + process.getModelInterface().getSimpleName() + ": " + processRdfId);
             return process;
         }
+
         switch (axnCode) {
             case B:
                 //makes either a binding reaction (ComplexAssembly) or just a Complex, based on the parentAxnCode
                 process = createBindingReaction(ixn, processRdfId);
                 break;
             case W:
-                process = createBlackboxControlWithoutProducts(ixn, axnCode, processRdfId);
+                process = createBlackboxControlWithoutProducts(ixn, processRdfId);
                 break;
             case EXP:
-                process = createExpressionReaction(ixn, axnCode, actor, processRdfId);
+                process = createExpressionReaction(ixn, processRdfId);
                 break;
-            case ACT:
-                process = createModificationReaction(ixn, axnCode, actor, processRdfId, "inactive", "active");
-                break;
-            case MUT:
-                process = createModificationReaction(ixn, axnCode, actor, processRdfId, "wildtype", "mutated");
-                break;
-            case SPL: // splicing
-                process = createModificationReaction(ixn, axnCode, actor, processRdfId, null, "spliced");
-                break;
+            case ACT: // activity
             case STA: // stability
-                process = createModificationReaction(ixn, axnCode, actor, processRdfId, "instable", "stable");
+            case MUT: // mutation
+            case SPL: // splicing
+            case CLV: // cleavage
+            case FOL: // folding
+                process = createModificationReaction(ixn, processRdfId);
                 break;
             // The following are all metabolic reactions identified by the PTM name
             // So we will just use the modifier name generically for all these
@@ -201,41 +194,35 @@ public class CTDInteractionConverter extends Converter {
             case SUL:
             case SUM:
             case UBQ:
-            case CLV:
-                process = createModificationReaction(ixn, axnCode, actor, processRdfId, null, axnCode.getTypeName());
-                break;
             case DEG:
             case HYD:
-                process = createDegradationReaction(ixn, axnCode, actor, processRdfId);
+                process = createDegradationReaction(ixn, processRdfId);
                 break;
             case RXN: // Reaction (or Control with TemplateReaction)
-                process = createReaction(ixn, axnCode, actor, processRdfId);
+                process = createReaction(ixn, processRdfId);
                 break;
             case EXT:
             case SEC:
-                process = createTransport(ixn, axnCode, actor, processRdfId, null, "extracellular matrix");
+                process = createTransport(ixn, processRdfId, null, "extracellular matrix");
                 break;
             case UPT:
             case IMT:
-                process = createTransport(ixn, axnCode, actor, processRdfId, "extracellular matrix", null);
+                process = createTransport(ixn, processRdfId, "extracellular matrix", null);
                 break;
             case CSY:
-                process = createSynthesisReaction(ixn, actor, processRdfId);
-                break;
-            case FOL: // folding
-                process = createModificationReaction(ixn, axnCode, actor, processRdfId, null, axnCode.getTypeName());
+                process = createSynthesisReaction(ixn, processRdfId);
                 break;
             case TRT: // transport
-                process = createTransport(ixn, axnCode, actor, processRdfId, null, null);
+                process = createTransport(ixn, processRdfId,null, null);
                 break;
             case LOC: // localization
-                process = createTransport(ixn, axnCode, actor, processRdfId, null, null);
+                process = createTransport(ixn, processRdfId, null, null);
                 break;
             case REC: // Response to substance
             case ABU: // abundance
             case MET: // metabolism
             default:
-                process =  createReaction(ixn, axnCode, actor, processRdfId);
+                process =  createReaction(ixn, processRdfId);
                 break;
         }
 
@@ -245,10 +232,6 @@ public class CTDInteractionConverter extends Converter {
     // Converts an ixn (axn code='b' of course) to a complex assembly process
     private Process createBindingReaction(IxnType ixn, String processId) {
         List<ActorType> actors = ixn.getActor();
-        if(actors.size() < 2) {
-            log.error("createBindingReaction ignored ixn " + ixn.getId() + " - there is none or just one actor");
-        }
-
         ComplexAssembly complexAssembly = (ComplexAssembly) model.getByID(absoluteUri(processId));
         if(complexAssembly == null)
         {
@@ -270,7 +253,7 @@ public class CTDInteractionConverter extends Converter {
                 } else {
                     //IXN : create sub-process(es) and collect their products to use as complex components here
                     IxnType subIxn = CtdUtil.convertActorToIxn(actor);
-                    AxnCode subAxn = CtdUtil.extractAxnCode(subIxn);
+                    AxnCode subAxn = CtdUtil.axnCode(subIxn);
                     if(subAxn == AxnCode.W) {
                         //TODO: unsure what does axn code 'w' (co-treatment) mean inside an ixn actor of a 'b' parent ..
                         for (ActorType actorType : subIxn.getActor()) {
@@ -296,7 +279,7 @@ public class CTDInteractionConverter extends Converter {
         return complexAssembly;
     }
 
-    private Process createBlackboxControlWithoutProducts(IxnType ixn, AxnCode axnCode, String rdfId) {
+    private Process createBlackboxControlWithoutProducts(IxnType ixn, String rdfId) {
         Modulation control = (Modulation) model.getByID(absoluteUri(rdfId));
         //Note: Modulation.controlled property can be either null or a Catalysis
         if(control == null) {
@@ -309,6 +292,7 @@ public class CTDInteractionConverter extends Converter {
             }
             model.add(control);
         }
+        AxnCode axnCode = CtdUtil.axnCode(ixn);
         control.addComment(axnCode.getDescription());
         return control;
     }
@@ -437,9 +421,43 @@ public class CTDInteractionConverter extends Converter {
     }
 
 
-    private Process createModificationReaction(IxnType ixn, AxnCode axnCode, ActorType actor,
-                                               String processId, String leftTerm, String rightTerm)
+    private Process createModificationReaction(IxnType ixn, String processId)
     {
+        ActorType actor = ixn.getActor().get(1);
+        AxnCode axnCode = CtdUtil.axnCode(ixn);
+        String term;
+        switch (axnCode) {
+            case ACT: // specific activity
+                term = "active";
+                break;
+            case STA: // stability
+                term = "stable";
+                break;
+            case MUT: //mutation
+                term = "mutated";
+                break;
+            case SPL: // splicing
+                term = "spliced";
+                break;
+            case CLV: //cleavage
+                term = "cleaved";
+                break;
+            case FOL: // folding
+                term = "folded";
+                break;
+            default://never
+                throw new IllegalArgumentException("createModificationReaction, ixn:" +
+                        ixn.getId() + ", unsupported axn code:" + axnCode);
+        }
+        //using axn and control type (+/-) to fine-tune the modification/state name;
+        if(axnCode==AxnCode.ACT || axnCode==AxnCode.STA) {
+            ControlType ct = controlTypeAction(CtdUtil.axnType(ixn));
+            if (ct == ControlType.ACTIVATION)
+                term = "more " + term;
+            else if (ct == ControlType.INHIBITION)
+                term = "less " + term;
+        }
+
         Process process;
         final Actor a = CtdUtil.extractActor(actor);
         switch (a) {
@@ -452,27 +470,21 @@ public class CTDInteractionConverter extends Converter {
                 if (biochemicalReaction == null) {
                     biochemicalReaction = create(BiochemicalReaction.class, processId);
                     setNameFromIxnType(ixn, biochemicalReaction, false);
-                    SimplePhysicalEntity leftPar = createSPEFromActor(actor, leftTerm != null);
-                    SimplePhysicalEntity rightPar = createSPEFromActor(actor, rightTerm != null);
+                    SimplePhysicalEntity leftPar = createSPEFromActor(actor, true);
+                    SimplePhysicalEntity rightPar = createSPEFromActor(actor, true);
                     biochemicalReaction.addLeft(leftPar);
                     biochemicalReaction.addRight(rightPar);
                     biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
 
                     if (CtdUtil.extractActor(actor).equals(Actor.CHEMICAL)) {
-                        if (leftTerm != null) {
-                            leftPar.setDisplayName(leftPar.getDisplayName() + " (" + leftTerm + ")");
-                        }
-
-                        if (rightTerm != null) {
-                            rightPar.setDisplayName(rightPar.getDisplayName() + " (" + rightTerm + ")");
+                        if (term != null) {
+                            rightPar.setDisplayName(rightPar.getDisplayName() + " (" + term + ")");
                         }
                     } else {
-                        if (leftTerm != null) {
-                            leftPar.addFeature(createModFeature("modl_" + processId, leftTerm));
-                        }
-
-                        if (rightTerm != null) {
-                            rightPar.addFeature(createModFeature("modr_" + processId, rightTerm));
+                        if (term != null) {
+                            ModificationFeature mf = createModFeature("modf_" + processId, term);
+                            leftPar.addNotFeature(mf);
+                            rightPar.addFeature(mf);
                         }
                     }
 
@@ -497,8 +509,9 @@ public class CTDInteractionConverter extends Converter {
         return feature;
     }
 
-    private Process createExpressionReaction(IxnType ixn, AxnCode axnCode, ActorType actor, String processId) {
+    private Process createExpressionReaction(IxnType ixn, String processId) {
         Process process;
+        ActorType actor = ixn.getActor().get(1);
         switch (CtdUtil.extractActor(actor)) {
             case IXN:
                 IxnType subIxn = CtdUtil.convertActorToIxn(actor);
@@ -520,12 +533,16 @@ public class CTDInteractionConverter extends Converter {
         return process;
     }
 
-    private Control createControlFromActor(Process controlled, IxnType ixn, AxnCode axnCode, ActorType actor)
+    private Control createControlFromActor(Process controlled, IxnType ixn)
     {
+        AxnCode axnCode = CtdUtil.axnCode(ixn);
+        AxnType axnType = CtdUtil.axnType(ixn);
+        ActorType actor = ixn.getActor().get(0);
+
         String rdfId = String.format("%s_%s", axnCode, ixn.getId());
         Control control = (Control) model.getByID(absoluteUri(rdfId));
         if(control == null) {
-            ControlType controlType = controlTypeAction(ixn.getAxn().get(0));
+            ControlType controlType = controlTypeAction(axnType);
             Collection<Controller> controllers = createControllersFromActor(actor, controlled);
             if (controlled instanceof TemplateReaction) {
                 control = create(TemplateReactionRegulation.class, rdfId);
@@ -560,7 +577,7 @@ public class CTDInteractionConverter extends Converter {
         switch (CtdUtil.extractActor(actor)) {
             case IXN:
                 IxnType subIxn = CtdUtil.convertActorToIxn(actor);
-                AxnCode axnCode = CtdUtil.extractAxnCode(subIxn);
+                AxnCode axnCode = CtdUtil.axnCode(subIxn);
                 Process process = convertInteraction(subIxn);
                 log.info(String.format("createControllersFromActor; actor ixn:%s, parent:%s, " +
                         "axn:%s, sub-process:%s (%s)", subIxn.getId(), actor.getParentid(), axnCode,
