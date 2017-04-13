@@ -140,7 +140,7 @@
     </xs:complexType>
     <xs:complexType name="actorType" mixed="true">
         <xs:sequence>
-            <xs:element type="axnType" name="axn" maxOccurs="unbounded" minOccurs="1">
+            <xs:element type="axnType" name="axn" maxOccurs="unbounded">
                 <xs:annotation>
                     <xs:documentation>
                         The action(s) that occur among the actors in the interaction.

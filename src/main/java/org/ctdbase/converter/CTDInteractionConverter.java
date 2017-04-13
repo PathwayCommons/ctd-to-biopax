@@ -1,5 +1,6 @@
 package org.ctdbase.converter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.ctdbase.util.CtdUtil;
 import org.ctdbase.util.model.Actor;
 import org.ctdbase.util.model.AxnCode;
@@ -154,6 +155,7 @@ public class CTDInteractionConverter extends Converter {
                 process = createExpressionReaction(ixn, processRdfId);
                 break;
             case ACT: // activity
+            //TODO: I bet, 'act' should be always mapped to Control or Modulation instead Conversion with mod. features
             case STA: // stability
             case MUT: // mutation
             case SPL: // splicing
@@ -246,7 +248,7 @@ public class CTDInteractionConverter extends Converter {
             StringBuilder nameBuilder = new StringBuilder();
             for(ActorType actor : actors) {
                 if(CtdUtil.extractActor(actor) != Actor.IXN) {
-                    PhysicalEntity pe = createSPEFromActor(actor, false);
+                    PhysicalEntity pe = createSPEFromActor(actor, null);
                     complex.addComponent(pe);
                     complexAssembly.addLeft(pe);
                     nameBuilder.append(pe.getDisplayName()).append("/");
@@ -257,7 +259,7 @@ public class CTDInteractionConverter extends Converter {
                     if(subAxn == AxnCode.W) {
                         //TODO: unsure what does axn code 'w' (co-treatment) mean inside an ixn actor of a 'b' parent ..
                         for (ActorType actorType : subIxn.getActor()) {
-                            PhysicalEntity pe = createSPEFromActor(actorType, true);
+                            PhysicalEntity pe = createSPEFromActor(actorType, null);
                             complex.addComponent(pe);
                             complexAssembly.addLeft(pe);
                             nameBuilder.append(pe.getDisplayName()).append("/");
@@ -297,9 +299,10 @@ public class CTDInteractionConverter extends Converter {
         return control;
     }
 
-    private Process createDegradationReaction(IxnType ixn, AxnCode axnCode, ActorType actor, String processId)
+    private Process createDegradationReaction(IxnType ixn, String processId)
     {
         Process process;
+        ActorType actor = ixn.getActor().get(1);
         final Actor a = CtdUtil.extractActor(actor);
         switch (a) {
             case IXN:
@@ -311,7 +314,7 @@ public class CTDInteractionConverter extends Converter {
                 if (degradation == null) {
                     degradation = create(Degradation.class, processId);
                     setNameFromIxnType(ixn, degradation, false);
-                    SimplePhysicalEntity par = createSPEFromActor(actor, false);
+                    SimplePhysicalEntity par = createSPEFromActor(actor, null);
                     degradation.addLeft(par);
                     degradation.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
                     model.add(degradation);
@@ -322,8 +325,10 @@ public class CTDInteractionConverter extends Converter {
         return process;
     }
 
-    private Process createReaction(IxnType ixn, AxnCode axnCode, ActorType actor, String processId) {
+    private Process createReaction(IxnType ixn, String processId) {
         Process process;
+        ActorType actor = ixn.getActor().get(1);
+        AxnCode axnCode = CtdUtil.axnCode(ixn);
         Actor a = CtdUtil.extractActor(actor);
         switch (a) {
             case IXN:
@@ -337,7 +342,7 @@ public class CTDInteractionConverter extends Converter {
                 if (react == null) {
                     react = create(Conversion.class, processId);
                     setNameFromIxnType(ixn, react, false);
-                    SimplePhysicalEntity par = createSPEFromActor(actor, false);
+                    SimplePhysicalEntity par = createSPEFromActor(actor, null);
                     if(axnCode == AxnCode.MET)
                         react.addLeft(par);
                     else
@@ -350,9 +355,10 @@ public class CTDInteractionConverter extends Converter {
         return process;
     }
 
-    private Process createSynthesisReaction(IxnType ixn, ActorType actor, String processId)
+    private Process createSynthesisReaction(IxnType ixn, String processId)
     {
         Process process;
+        ActorType actor = ixn.getActor().get(1);
         final Actor a = CtdUtil.extractActor(actor);
         switch (a) {
             case IXN:
@@ -364,7 +370,7 @@ public class CTDInteractionConverter extends Converter {
                 if (biochemicalReaction == null) {
                     biochemicalReaction = create(BiochemicalReaction.class, processId);
                     setNameFromIxnType(ixn, biochemicalReaction, false);
-                    SimplePhysicalEntity rightPar = createSPEFromActor(actor, false);
+                    SimplePhysicalEntity rightPar = createSPEFromActor(actor, null);
                     biochemicalReaction.addRight(rightPar);
                     biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
                     model.add(biochemicalReaction);
@@ -375,10 +381,10 @@ public class CTDInteractionConverter extends Converter {
         return process;
     }
 
-    private Process createTransport(IxnType ixn, AxnCode axnCode, ActorType actor,
-                                    String processId, String leftLoc, String rightLoc)
+    private Process createTransport(IxnType ixn, String processId, String leftLoc, String rightLoc)
     {
         Process process;
+        ActorType actor = ixn.getActor().get(1);
         final Actor a = CtdUtil.extractActor(actor);
         switch (a) {
             case IXN:
@@ -390,8 +396,8 @@ public class CTDInteractionConverter extends Converter {
                 if (transport == null) {
                     transport = create(Transport.class, processId);
                     setNameFromIxnType(ixn, transport, false);
-                    SimplePhysicalEntity leftPar = createSPEFromActor(actor, false);
-                    SimplePhysicalEntity rightPar = createSPEFromActor(actor, true);
+                    SimplePhysicalEntity leftPar = createSPEFromActor(actor, leftLoc);
+                    SimplePhysicalEntity rightPar = createSPEFromActor(actor, rightLoc);
                     transport.addLeft(leftPar);
                     transport.addRight(rightPar);
                     transport.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
@@ -428,10 +434,10 @@ public class CTDInteractionConverter extends Converter {
         String term;
         switch (axnCode) {
             case ACT: // specific activity
-                term = "active";
+                term = "active"; //TODO: move to another method (create Control+Catalysis)
                 break;
             case STA: // stability
-                term = "stable";
+                term = "stable"; //TODO: move to another method (create Control+Degradation)
                 break;
             case MUT: //mutation
                 term = "mutated";
@@ -470,8 +476,8 @@ public class CTDInteractionConverter extends Converter {
                 if (biochemicalReaction == null) {
                     biochemicalReaction = create(BiochemicalReaction.class, processId);
                     setNameFromIxnType(ixn, biochemicalReaction, false);
-                    SimplePhysicalEntity leftPar = createSPEFromActor(actor, true);
-                    SimplePhysicalEntity rightPar = createSPEFromActor(actor, true);
+                    SimplePhysicalEntity leftPar = createSPEFromActor(actor, null);
+                    SimplePhysicalEntity rightPar = createSPEFromActor(actor, term);
                     biochemicalReaction.addLeft(leftPar);
                     biochemicalReaction.addRight(rightPar);
                     biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
@@ -483,7 +489,6 @@ public class CTDInteractionConverter extends Converter {
                     } else {
                         if (term != null) {
                             ModificationFeature mf = createModFeature("modf_" + processId, term);
-                            leftPar.addNotFeature(mf);
                             rightPar.addFeature(mf);
                         }
                     }
@@ -523,7 +528,7 @@ public class CTDInteractionConverter extends Converter {
                     templateReaction = create(TemplateReaction.class, processId);
                     setNameFromIxnType(ixn, templateReaction, false);
                     templateReaction.setTemplateDirection(TemplateDirectionType.FORWARD); // Expression is always forward
-                    SimplePhysicalEntity actorEntity = createSPEFromActor(actor, false);
+                    SimplePhysicalEntity actorEntity = createSPEFromActor(actor, null);
                     templateReaction.addProduct(actorEntity);
                     model.add(templateReaction);
                 }
@@ -603,19 +608,19 @@ public class CTDInteractionConverter extends Converter {
 
                 break;
             default: // If not an IXN, then it is a physical entity
-                controllers.add(createSPEFromActor(actor, false));
+                controllers.add(createSPEFromActor(actor, null));
                 break;
         }
 
         return controllers;
     }
 
-    private SimplePhysicalEntity createSPEFromActor(ActorType actor, boolean createNewInstance) {
+    private SimplePhysicalEntity createSPEFromActor(ActorType actor, String state) {
         SimplePhysicalEntity spe;
         Actor aType = CtdUtil.extractActor(actor);
         switch (aType) {
             case CHEMICAL:
-                spe = createEntityFromActor(actor, SmallMolecule.class, SmallMoleculeReference.class, createNewInstance);
+                spe = createEntityFromActor(actor, SmallMolecule.class, SmallMoleculeReference.class, state);
                 break;
             case GENE:
                 String form = actor.getForm();
@@ -625,7 +630,7 @@ public class CTDInteractionConverter extends Converter {
 
                 Class<? extends SimplePhysicalEntity> eClass = geneForm.getEntityClass();
                 Class<? extends EntityReference> refClass = geneForm.getReferenceClass();
-                spe = createEntityFromActor(actor, eClass, refClass, createNewInstance);
+                spe = createEntityFromActor(actor, eClass, refClass, state);
                 break;
             case IXN:
             default:
@@ -638,7 +643,7 @@ public class CTDInteractionConverter extends Converter {
     private SimplePhysicalEntity createEntityFromActor(ActorType actorType,
                                                        Class<? extends SimplePhysicalEntity> entityClass,
                                                        Class<? extends EntityReference> referenceClass,
-                                                       boolean createNewEntity)
+                                                       String state)
     {
         String form = actorType.getForm();
         Actor actor = CtdUtil.extractActor(actorType);
@@ -661,7 +666,7 @@ public class CTDInteractionConverter extends Converter {
         String actorTypeId = actorType.getId();
         String refId = CtdUtil.sanitizeId("ref_" + form + "_" + actorTypeId.toLowerCase());
         String entityId = CtdUtil.sanitizeId(form + "_" + actorTypeId.toLowerCase()
-                + (createNewEntity ? "_" + UUID.randomUUID() : ""));
+                + (StringUtils.isEmpty(state) ? "" : "_" + state.toLowerCase()));
 
         EntityReference entityReference = (EntityReference) model.getByID(absoluteUri(refId));
         if(entityReference == null) {
