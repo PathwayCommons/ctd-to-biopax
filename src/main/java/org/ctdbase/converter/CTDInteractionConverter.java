@@ -56,10 +56,11 @@ public class CTDInteractionConverter extends Converter {
     {
         // the first actor is to make a Control process
         List<ActorType> actors = ixn.getActor();
+        AxnCode axnCode = CtdUtil.axnCode(ixn);
         if(actors.size() < 2) {
             log.error("Ignored ixn:" + ixn.getId() + ", which has < 2 actors (violates the CTD XML schema)");
             return null;
-        } else if(actors.size() > 2) {
+        } else if(actors.size() > 2 && axnCode != AxnCode.W && axnCode != AxnCode.B) {
             log.warn(String.format("Ixn %s has %d actors, but we convert only two...",
                     ixn.getId(), actors.size()));
         }
@@ -85,7 +86,6 @@ public class CTDInteractionConverter extends Converter {
         Process process = createProcessFromAction(ixn);
 
         // Create a Contol unless the process is binding (axn code 'b') or co-treatment ('w') one
-        AxnCode axnCode = CtdUtil.axnCode(ixn);
         if(!axnCode.equals(AxnCode.B) && !axnCode.equals(AxnCode.W)) {
             Control control = createControlFromActor(process, ixn);
             control.addControlled(process);
