@@ -166,16 +166,16 @@
         <!--</actor>-->
     <!--</ixn>-->
 
-    <!--&lt;!&ndash;means: vorinostat results in decreased activity of the HDAC3/NCOR2 complex (not about the complex assembly/binding reaction)&ndash;&gt;-->
-    <!--<ixn id="4514393"><taxon id="9606">Homo sapiens</taxon><reference pmid="21548582"/>-->
-        <!--<axn code="act" degreecode="-" position="1" parentid="4514393">results in decreased activity of</axn>-->
-        <!--<actor type="chemical" id="MESH:C111237" parentid="4514393" position="1">vorinostat</actor>-->
-        <!--<actor type="ixn" id="4514394" parentid="4514393" position="2">-->
-            <!--<axn code="b" degreecode="1" position="1" parentid="4514394">binds to</axn>-->
-            <!--<actor type="gene" id="GENE:8841" parentid="4514394" form="protein" position="1">HDAC3</actor>-->
-            <!--<actor type="gene" id="GENE:9612" parentid="4514394" form="protein" position="2">NCOR2</actor>-->
-        <!--</actor>-->
-    <!--</ixn>-->
+    <!--means: vorinostat results in decreased activity of the HDAC3/NCOR2 complex (not about the complex assembly/binding reaction)-->
+    <ixn id="4514393"><taxon id="9606">Homo sapiens</taxon><reference pmid="21548582"/>
+        <axn code="act" degreecode="-" position="1" parentid="4514393">results in decreased activity of</axn>
+        <actor type="chemical" id="MESH:C111237" parentid="4514393" position="1">vorinostat</actor>
+        <actor type="ixn" id="4514394" parentid="4514393" position="2">
+            <axn code="b" degreecode="1" position="1" parentid="4514394">binds to</axn>
+            <actor type="gene" id="GENE:8841" parentid="4514394" form="protein" position="1">HDAC3</actor>
+            <actor type="gene" id="GENE:9612" parentid="4514394" form="protein" position="2">NCOR2</actor>
+        </actor>
+    </ixn>
     <!--&lt;!&ndash; (made-up test case, not in original CTD data) vorinostat inhibits binding (complex assembly) of HDAC3 to NCOR2 &ndash;&gt;-->
     <!--<ixn id="45143930"><taxon id="9606">Homo sapiens</taxon><reference pmid="21548582"/>-->
         <!--<axn code="rxn" degreecode="-" position="1" parentid="45143930">inhibits the reaction</axn>-->
@@ -273,6 +273,32 @@
         <!--</actor>-->
     <!--</ixn>-->
 
+    <ixn id="3556555"><taxon id="9606">Homo sapiens</taxon><reference pmid="10233209"/>
+        <axn code="met" degreecode="+" position="1" parentid="3556555">results in increased metabolism of</axn>
+        <actor type="ixn" id="3556556" parentid="3556555" position="1">
+            <axn code="exp" degreecode="+" position="1" parentid="3556556">results in increased expression of</axn>
+            <actor type="chemical" id="MESH:C057693" parentid="3556556" position="1">troglitazone</actor>
+            <actor type="gene" id="GENE:4023" parentid="3556556" form="protein" position="2">LPL</actor>
+        </actor>
+        <actor type="chemical" id="MESH:D008055" parentid="3556555" position="2">Lipids</actor>
+    </ixn>
+    <ixn id="3654932"><taxon id="9606">Homo sapiens</taxon><reference pmid="20199096"/>
+        <axn code="met" degreecode="+" position="1" parentid="3654932">results in increased metabolism of</axn>
+        <actor type="ixn" id="3654933" parentid="3654932" position="1">
+            <axn code="w" degreecode="1" position="1" parentid="3654933">co-treated with</axn>
+            <actor type="gene" id="GENE:4353" parentid="3654933" form="protein" position="1">MPO</actor>
+            <actor type="chemical" id="MESH:D006861" parentid="3654933" position="2">Hydrogen Peroxide</actor>
+            <actor type="chemical" id="MESH:C017245" parentid="3654933" position="3">5,5-dimethyl-1-pyrroline-1-oxide</actor>
+        </actor>
+        <actor type="chemical" id="MESH:C023650" parentid="3654932" position="2">aniline</actor>
+    </ixn>
+
+    <!--axn code="abu"-->
+    <ixn id="3695369"><taxon id="9606">Homo sapiens</taxon><reference pmid="12548226"/>
+        <axn code="abu" degreecode="+" position="1" parentid="3695369">results in increased abundance of</axn>
+        <actor type="gene" id="GENE:3586" parentid="3695369" form="protein" position="1">IL10</actor>
+        <actor type="chemical" id="MESH:D015232" parentid="3695369" position="2">Dinoprostone</actor>
+    </ixn>
 
     <!--data error (XSD min constraint violated): has to be at least 2 actors-->
     <ixn id="4841667"><reference pmid="24269741"/>

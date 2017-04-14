@@ -36,37 +36,35 @@ public class CtdUtil {
                 completeName = completeName.substring(0, completeName.length()-1);
                 break;
             default:
-                if(ixn.getActor().size() > 0) {
-                    fName = CtdUtil.extractName(ixn.getActor().get(0));
-                    String sName = CtdUtil.extractName(ixn.getActor().get(1));
-                    completeName = ((skipControl)? "" : fName + " ") + actionStr + " " + sName;
-                } else {
-                    completeName = "n/a";
-                }
+                fName = CtdUtil.extractName(ixn.getActor().get(0));
+                String sName = CtdUtil.extractName(ixn.getActor().get(1));
+                completeName = ((skipControl)? "" : fName + " ") + actionStr + " " + sName;
                 break;
         }
-
         return completeName;
     }
 
-    public static String extractName(ActorType actor)
-    {
+    public static String extractName(ActorType actor) {
         List<Serializable> serializableList = actor.getContent();
 
         String formStr = actor.getForm();
-        if(formStr != null) {
+        if (formStr != null) {
             formStr = " " + formStr;
+            String formqualifier = actor.getFormqualifier();
+            if (formqualifier != null)
+                formStr += " " + formqualifier;
         } else {
             formStr = "";
         }
 
         String name = "";
-        if(serializableList.isEmpty()) {
+        if (serializableList.isEmpty()) {
             name = actor.getId();
-        } else if(serializableList.size() == 1)
+        } else if (serializableList.size() == 1) {
             name = serializableList.iterator().next().toString() + formStr;
-        else
-            name = "[" + extractName(convertActorToIxn(actor),false) + "]";
+        } else {
+            name = "[" + extractName(convertActorToIxn(actor), false) + "]";
+        }
 
         return name;
     }
