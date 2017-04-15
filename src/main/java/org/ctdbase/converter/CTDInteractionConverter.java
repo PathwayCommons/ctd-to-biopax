@@ -155,7 +155,8 @@ public class CTDInteractionConverter extends Converter {
                 process = createBlackboxControl(ixn, processRdfId);
                 break;
             case ABU: // abundance
-                process = createConversion(ixn, processRdfId, false, true);
+            case CSY: // synthesis
+                process = createConversion(ixn, processRdfId,false,true);
                 break;
             case MET: // metabolism
                 process = createConversion(ixn, processRdfId, true, false);
@@ -205,7 +206,12 @@ public class CTDInteractionConverter extends Converter {
                 process = createDegradation(ixn, processRdfId);
                 break;
             case RXN: // Reaction (or Control with TemplateReaction)
-                process = createReaction(ixn, processRdfId);
+//                process = createReaction(ixn, processRdfId);
+                //the actor here must be 'ixn' type only
+                IxnType subIxn = CtdUtil.convertActorToIxn(actor);
+                process = convertInteraction(subIxn);
+                if(process instanceof Control)
+                    process.addComment(axnCode.getDescription());
                 break;
             case EXT:
             case SEC:
@@ -215,12 +221,7 @@ public class CTDInteractionConverter extends Converter {
             case IMT:
                 process = createTransport(ixn, processRdfId, "extracellular matrix", null);
                 break;
-            case CSY:
-                process = createSynthesisReaction(ixn, processRdfId);
-                break;
             case TRT: // transport
-                process = createTransport(ixn, processRdfId,null, null);
-                break;
             case LOC: // localization
                 process = createTransport(ixn, processRdfId, null, null);
                 break;
@@ -334,7 +335,7 @@ public class CTDInteractionConverter extends Converter {
             case IXN:
                 IxnType subIxn = CtdUtil.convertActorToIxn(actor);
                 process = convertInteraction(subIxn);
-                break;
+                break;//TODO: remove this break; use products of the process in the degradation below?..
             default:
                 Degradation degradation = (Degradation) model.getByID(absoluteUri(processId));
                 if (degradation == null) {
@@ -351,62 +352,6 @@ public class CTDInteractionConverter extends Converter {
         return process;
     }
 
-    private Interaction createReaction(IxnType ixn, String processId) {
-        Interaction process;
-        ActorType actor = ixn.getActor().get(1);
-        AxnCode axnCode = CtdUtil.axnCode(ixn);
-        Actor a = CtdUtil.extractActor(actor);
-        switch (a) {
-            case IXN:
-                IxnType subIxn = CtdUtil.convertActorToIxn(actor);
-                process = convertInteraction(subIxn);
-                if(process instanceof Control)
-                    process.addComment(axnCode.getDescription());
-                break;
-            default:
-                Conversion react = (Conversion) model.getByID(absoluteUri(processId));
-                if (react == null) {
-                    react = create(Conversion.class, processId);
-                    setNameFromIxnType(ixn, react, false);
-                    SimplePhysicalEntity par = createSPEFromActor(actor, null);
-                    if(axnCode == AxnCode.MET)
-                        react.addLeft(par);
-                    else
-                        react.addRight(par);
-                    model.add(react);
-                }
-                process = react;
-                break;
-        }
-        return process;
-    }
-
-    private Interaction createSynthesisReaction(IxnType ixn, String processId)
-    {
-        Interaction process;
-        ActorType actor = ixn.getActor().get(1);
-        final Actor a = CtdUtil.extractActor(actor);
-        switch (a) {
-            case IXN:
-                IxnType subIxn = CtdUtil.convertActorToIxn(actor);
-                process = convertInteraction(subIxn);
-                break;
-            default:
-                BiochemicalReaction biochemicalReaction = (BiochemicalReaction) model.getByID(absoluteUri(processId));
-                if (biochemicalReaction == null) {
-                    biochemicalReaction = create(BiochemicalReaction.class, processId);
-                    setNameFromIxnType(ixn, biochemicalReaction, false);
-                    SimplePhysicalEntity rightPar = createSPEFromActor(actor, null);
-                    biochemicalReaction.addRight(rightPar);
-                    biochemicalReaction.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
-                    model.add(biochemicalReaction);
-                }
-                process = biochemicalReaction;
-                break;
-        }
-        return process;
-    }
-
     private Interaction createTransport(IxnType ixn, String processId, String leftLoc, String rightLoc)
     {
         Interaction process;
@@ -416,7 +361,7 @@ public class CTDInteractionConverter extends Converter {
             case IXN:
                 IxnType subIxn = CtdUtil.convertActorToIxn(actor);
                 process = convertInteraction(subIxn);
-                break;
+                break; //TODO: remove this break; use products of the process in the transport below?..
             default:
                 Transport transport = (Transport) model.getByID(absoluteUri(processId));
                 if (transport == null) {
@@ -461,6 +406,7 @@ public class CTDInteractionConverter extends Converter {
         switch (axnCode) {
             case ABU: // abundance
             case MET: // metabolism
+            case CSY: // synthesis
                 term = null;
                 break;
             case MUT: //mutation
@@ -499,12 +445,10 @@ public class CTDInteractionConverter extends Converter {
                     if(useRight) {
                         SimplePhysicalEntity rightPar = createSPEFromActor(actor, term);
                         biochemicalReaction.addRight(rightPar);
-                        if (CtdUtil.extractActor(actor).equals(Actor.CHEMICAL)) {
-                            if (term != null) {
+                        if (term != null) {
+                            if (CtdUtil.extractActor(actor).equals(Actor.CHEMICAL)) {
                                 rightPar.setDisplayName(rightPar.getDisplayName() + " (" + term + ")");
-                            }
-                        } else {
-                            if (term != null) {
+                            } else {
                                 ModificationFeature mf = createModFeature("modf_" + processId, term);
                                 rightPar.addFeature(mf);
                             }
