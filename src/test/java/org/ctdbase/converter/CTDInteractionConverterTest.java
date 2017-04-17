@@ -32,7 +32,7 @@ public class CTDInteractionConverterTest {
         assertNotNull(trr);
         assertEquals("PD 0325901 results in decreased expression of PEG3 mRNA",
                 trr.getName().iterator().next());
-        TemplateReaction tr = (TemplateReaction) trr.getControlled();
+        TemplateReaction tr = (TemplateReaction) trr.getControlled().iterator().next();
         assertNotNull(tr);
         assertTrue(tr.getName().contains("expression of PEG3 mRNA"));
         assertFalse(tr.getProduct().isEmpty());
