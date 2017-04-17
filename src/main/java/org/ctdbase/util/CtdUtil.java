@@ -84,8 +84,9 @@ public class CtdUtil {
 
     public static IxnType convertActorToIxn(ActorType actor)
     {
-        if(CtdUtil.extractActor(actor) != Actor.IXN)
+        if(CtdUtil.extractActor(actor) != Actor.IXN) {
             throw new IllegalArgumentException("Actor is not IXN type; id: " + actor.getId());
+        }
 
         IxnType ixnType = ctdFactory.createIxnType();
 
