@@ -148,7 +148,7 @@ public class CTDInteractionConverter extends Converter {
 
         //a shortcut when the actor has 'ixn' type (nested processes),
         // except for binding -
-        if((CtdUtil.extractActor(actor)==Actor.IXN && axnCode != AxnCode.B)
+        if((CtdUtil.extractActor(actor)==Actor.IXN && axnCode != AxnCode.B && axnCode != AxnCode.W)
                 || axnCode == AxnCode.RXN)
         {
             try {
@@ -291,6 +291,17 @@ public class CTDInteractionConverter extends Converter {
                             complexAssembly.addLeft(pe);
                             nameBuilder.append(pe.getDisplayName()).append("/");
                         }
+                        if(complex.getComponent().isEmpty() && proc instanceof Control) {
+                            for(Process controlled : ((Control)proc).getControlled()) {
+                                if(controlled instanceof Control) {
+                                    for(Controller c: ((Control)controlled).getController()) {
+                                        complexAssembly.addLeft((PhysicalEntity) c);//ok to cast here
+                                        complex.addComponent((PhysicalEntity) c);//ok to cast here
+                                        nameBuilder.append(c.getDisplayName()).append("/");
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -302,32 +313,37 @@ public class CTDInteractionConverter extends Converter {
 
     private Interaction createBlackboxControl(IxnType ixn, String rdfId) {
         Control control = (Control) model.getByID(absoluteUri(rdfId));
-        //Note: Modulation.controlled property can be either null or a Catalysis
         if (control == null)
         {
-            ActorType actor = ixn.getActor().get(1);
             AxnCode axnCode = CtdUtil.axnCode(ixn);
-            if (axnCode == AxnCode.ACT)
-                control = create(Catalysis.class, rdfId);
-            else
+            if (axnCode == AxnCode.ACT) {
+                control = create(Control.class, rdfId);
+                control.setControlType(ControlType.ACTIVATION);
+                // - always activation (this sill can be inhibited by outer control);
+                // - could use Catalysis instead of Control, but then we can only set Conversion to 'controlled'
+                // property of this one, and there are examples where we want to set a Control/Modulation as well.
+                // see ixn id="3727084".
+            } else {
                 control = create(Modulation.class, rdfId);
+            }
 
             control.addComment(axnCode.getDescription());
-            setNameFromIxnType(ixn, control, false);
             model.add(control);
-            Actor a = CtdUtil.extractActor(actor);
-//            if(a == Actor.IXN) {
-//                IxnType subIxn = CtdUtil.convertActorToIxn(actor);
-//                Interaction subInteraction = convertIxn(subIxn);
-//                Set<PhysicalEntity> controllers = getProducts(subInteraction);
-//                for (Controller c : controllers) {
-//                    control.addController(c);
-//                }
-//            } else {
+
+            if(axnCode==AxnCode.W) {
+                setNameFromIxnType(ixn, control, true);
+                for(ActorType actor : ixn.getActor()) {
+                    for (Controller c : createControllersFromActor(actor, null)) {
+                        control.addController(c);
+                    }
+                }
+            } else {
+                setNameFromIxnType(ixn, control, false);
+                ActorType actor = ixn.getActor().get(1);
                 for (Controller c : createControllersFromActor(actor, null)) {
                     control.addController(c);
                 }
-//            }
+            }
         }
         return control;
     }
@@ -472,6 +488,7 @@ public class CTDInteractionConverter extends Converter {
         if(control == null) {
             ControlType controlType = controlTypeAction(axnType, axnCode);
             Collection<Controller> controllers = createControllersFromActor(actor, controlled);
+
             if (controlled instanceof TemplateReaction) {
                 control = create(TemplateReactionRegulation.class, rdfId);
             }
@@ -487,9 +504,11 @@ public class CTDInteractionConverter extends Converter {
                 else
                     control = create(Control.class, rdfId);
             }
+
             model.add(control);
             control.setControlType(controlType);
             setNameFromIxnType(ixn, control, true);
+
             for (Controller controller : controllers) {
                 control.addController(controller);
             }
@@ -506,7 +525,7 @@ public class CTDInteractionConverter extends Converter {
                 IxnType subIxn = CtdUtil.convertActorToIxn(actor);
                 AxnCode axnCode = CtdUtil.axnCode(subIxn);
                 Interaction process = convertIxn(subIxn);
-                log.info(String.format("createControllersFromActor; actor ixn:%s, parent:%s, " +
+                log.debug(String.format("createControllersFromActor; actor ixn:%s, parent:%s, " +
                         "axn:%s, sub-process:%s (%s)", subIxn.getId(), actor.getParentid(), axnCode,
                         process.getUri(), process.getModelInterface().getSimpleName()));
                 for (PhysicalEntity pe : getProducts(process)) {
@@ -522,6 +541,8 @@ public class CTDInteractionConverter extends Converter {
                             for(PhysicalEntity e : ((Conversion)p).getLeft()) {
                                 ((Conversion) controlled).addLeft(e);
                             }
+                        } else if(axnCode == AxnCode.ACT && p instanceof Control) {
+                            ((Control) p).addControlled(controlled);
                         }
                     }
                     if(control.getControlled().isEmpty())
@@ -626,9 +647,9 @@ public class CTDInteractionConverter extends Converter {
     private void assignName(String name, Named named) {
         if(name!=null && !name.isEmpty()) {
             if(named instanceof Interaction)
-                named.addName(name);
+                named.addName(name.trim());
             else
-                named.setDisplayName(name);
+                named.setDisplayName(name.trim());
         }
     }
 

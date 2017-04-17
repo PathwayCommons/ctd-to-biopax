@@ -6,6 +6,7 @@ import org.biopax.paxtools.model.level3.*;
 import org.biopax.paxtools.trove.TProvider;
 import org.biopax.paxtools.util.BPCollections;
 import org.ctdbase.util.CtdUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -22,11 +23,8 @@ public class CTDInteractionConverterTest {
 
         CTDInteractionConverter converter = new CTDInteractionConverter("9606");
         Model m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
-
-        //TODO: replace printing to the stout with good assertions
-
-        (new SimpleIOHandler()).convertToOWL(m,System.out);
-
+        //TODO: remove printing to the stout
+        (new SimpleIOHandler()).convertToOWL(m, System.out);
 
         TemplateReactionRegulation trr = (TemplateReactionRegulation) m.getByID(m.getXmlBase()+"EXP_4963086");
         assertNotNull(trr);
@@ -45,12 +43,63 @@ public class CTDInteractionConverterTest {
         assertNotNull(deg);
         assertTrue(deg.getName().contains("stability of MAP3K8 mRNA"));
 
-        Modulation modulation = (Modulation) m.getByID(m.getXmlBase()+"ACT_4463122");
-        assertNotNull(modulation);
-        assertTrue(modulation.getControlled().iterator().next() instanceof Catalysis);
-        assertTrue(modulation.getController().iterator().next() instanceof SmallMolecule);
+        ctrl = (Control) m.getByID(m.getXmlBase()+"ACT_4463122");
+        assertNotNull(ctrl);
+        assertTrue(ctrl.getControlled().iterator().next() instanceof Control);
+        assertTrue(ctrl.getController().iterator().next() instanceof SmallMolecule);
 
+        // an interesting special case, where the controller of the nested 'met' (metabolic) control+reaction
+        // is also the controller for the 'csy' (synthesis) control+conversion process:
+        ctrl = (Control) m.getByID(m.getXmlBase()+"CSY_3811415");
+        assertNotNull(ctrl);
+        assertTrue(ctrl.getController().size()==1);
+        Conversion reaction = (Conversion) ctrl.getControlled().iterator().next();
+        assertTrue(reaction instanceof Conversion);
+        assertEquals("Acrylamide",reaction.getLeft().iterator().next().getDisplayName());
+        assertEquals("N-acetyl-S-(2-carbamoylethyl)cysteine",reaction.getRight().iterator().next().getDisplayName());
 
+        ctrl = (Control) m.getByID(m.getXmlBase()+"REC_2788357");
+        Control w = (Control) ctrl.getControlled().iterator().next();
+        assertTrue(w instanceof Modulation);
+        assertEquals("Aspirin co-treated with clopidogrel, Epinephrine", w.getName().iterator().next());
+        assertEquals(3,w.getController().size());
+
+        reaction = (Conversion) m.getByID(m.getXmlBase()+"B_4071696");
+        assertTrue(reaction instanceof ComplexAssembly);
+        //a nested ComplexAssembly provides the complex to be used in the parent process,
+        //but itself would not participate in another control.
+        assertTrue(reaction.getControlledOf().isEmpty());
+
+        ctrl = (Control) m.getByID(m.getXmlBase()+"ACT_4247152");;
+        //a nested Modulation is about activity of NR1H4 (controller),
+        //but the Modulation itself would not participate in another control.
+        //And NR1H4 bind to FGF19 promoter, forming the "NR1H4 protein/FGF19 promoter complex"
+        //via the corresponding ComplexAssembly process.
+        assertTrue(reaction.getControlledOf().isEmpty());
+        reaction = (ComplexAssembly) m.getByID(m.getXmlBase()+"B_4247151");
+        assertTrue(reaction instanceof ComplexAssembly);
+        assertEquals(m.getXmlBase()+"complex_4247151",reaction.getRight().iterator().next().getUri());
+        Complex c = (Complex) m.getByID(m.getXmlBase()+"complex_4247151");
+        assertNotNull(c);
+        assertEquals("NR1H4 protein/FGF19 promoter complex",c.getDisplayName());
+
+        //similar
+        c = (Complex) m.getByID(m.getXmlBase()+"complex_4247161");
+        assertNotNull(c);
+        assertEquals("NR1H4 protein/FGF19 promoter complex",c.getDisplayName());
+        assertTrue(c.getControllerOf().size()==1);
+        assertEquals(m.getByID(m.getXmlBase()+"EXP_4247160"), c.getControllerOf().iterator().next());
+
+        //the most complicated case - both actors are of ixn type (sub-proc.), and the axn code is 'rec',
+        //and the control's axn code is 'act', and the second actor is 'w', etc..
+        ctrl = (Control) m.getByID(m.getXmlBase() + "REC_3727084");
+        assertNotNull(ctrl); //chemical C093124 controls(inhibits) the susceptibility W_3727086
+        w = (Modulation) m.getByID(m.getXmlBase() + "W_3727086");
+        assertNotNull(w);
+        assertEquals(w, ctrl.getControlled().iterator().next());
+        assertEquals(2, w.getControlledOf().size()); // is controlledOf both REC_3727084 and ACT_GENE_4843 controls
+        assertTrue(w.getControlledOf().contains(ctrl));
+        assertTrue(w.getControlledOf().contains(m.getByID(m.getXmlBase() + "ACT_GENE_4843")));
     }
 
 }
