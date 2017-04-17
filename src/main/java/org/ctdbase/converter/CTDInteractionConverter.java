@@ -83,6 +83,10 @@ public class CTDInteractionConverter extends Converter {
 
         // Create the interaction object from the ixn's second actor
         Interaction process = createInteraction(ixn);
+        if(process==null) {
+            log.warn("Skipped - failed to generate a sub-process from the second actor");
+            return null;
+        }
 
         // Create a Contol (from the first actor) unless the process is binding or co-treatment
         if(!axnCode.equals(AxnCode.B) && !axnCode.equals(AxnCode.W)) {

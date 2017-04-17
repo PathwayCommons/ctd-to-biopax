@@ -115,6 +115,7 @@
         <actor type="gene" id="GENE:597" parentid="2575806" form="protein" position="2">BCL2A1</actor>
     </ixn>
 
+    <!--TODO: test this (all actors in 5347211 should become controllers for the expression)-->
     <ixn id="5347210"><taxon id="9606">Homo sapiens</taxon><reference pmid="27188386"/>
         <axn code="exp" degreecode="+" position="1" parentid="5347210">results in increased expression of</axn>
         <actor type="ixn" id="5347211" parentid="5347210" position="1">
