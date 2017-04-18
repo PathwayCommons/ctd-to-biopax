@@ -302,6 +302,20 @@
         <actor type="gene" id="GENE:3586" parentid="3695369" form="protein" position="1">IL10</actor>
         <actor type="chemical" id="MESH:D015232" parentid="3695369" position="2">Dinoprostone</actor>
     </ixn>
+    <ixn id="3748031"><taxon id="9606">Homo sapiens</taxon><reference pmid="12794122"/>
+        <axn code="rec" degreecode="-" position="1" parentid="3748031">results in decreased susceptibility to</axn>
+        <actor type="ixn" id="3748032" parentid="3748031" position="1">
+            <axn code="act" degreecode="-" position="1" parentid="3748032">results in decreased activity of</axn>
+            <actor type="chemical" id="MESH:C093973" parentid="3748032" position="1">2-(2-amino-3-methoxyphenyl)-4H-1-benzopyran-4-one</actor>
+            <actor type="ixn" id="3748033" parentid="3748032" position="2">
+                <axn code="w" degreecode="1" position="1" parentid="3748033">co-treated with</axn>
+                <actor type="gene" id="GENE:5595" parentid="3748033" form="protein" position="1">MAPK3</actor>
+                <actor type="gene" id="GENE:5594" parentid="3748033" form="protein" position="2">MAPK1</actor>
+            </actor>
+        </actor>
+        <actor type="chemical" id="MESH:C440499" parentid="3748031" position="2">lipopolysaccharide, Escherichia coli O111 B4</actor>
+    </ixn>
+
     <!--data error (XSD min constraint violated): has to be at least 2 actors-->
     <ixn id="4841667"><reference pmid="24269741"/>
         <axn code="act" degreecode="+" position="1" parentid="4841667">results in increased activity of</axn>

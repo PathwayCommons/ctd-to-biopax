@@ -60,7 +60,7 @@ public class CTDInteractionConverterTest {
 
         ctrl = (Control) m.getByID(m.getXmlBase()+"REC_2788357");
         Control w = (Control) ctrl.getControlled().iterator().next();
-        assertTrue(w instanceof Modulation);
+        assertTrue(w instanceof Control);
         assertEquals("Aspirin co-treated with clopidogrel, Epinephrine", w.getName().iterator().next());
         assertEquals(3,w.getController().size());
 
@@ -69,13 +69,14 @@ public class CTDInteractionConverterTest {
         //a nested ComplexAssembly provides the complex to be used in the parent process,
         //but itself would not participate in another control.
         assertTrue(reaction.getControlledOf().isEmpty());
-
-        ctrl = (Control) m.getByID(m.getXmlBase()+"ACT_4247152");;
+        ctrl = (Control) m.getByID(m.getXmlBase()+"ACT_4247152");
+        assertTrue(ctrl instanceof Control);
         //a nested Modulation is about activity of NR1H4 (controller),
         //but the Modulation itself would not participate in another control.
         //And NR1H4 bind to FGF19 promoter, forming the "NR1H4 protein/FGF19 promoter complex"
         //via the corresponding ComplexAssembly process.
-        assertTrue(reaction.getControlledOf().isEmpty());
+        assertTrue(ctrl.getControlledOf().isEmpty());
+
         reaction = (ComplexAssembly) m.getByID(m.getXmlBase()+"B_4247151");
         assertTrue(reaction instanceof ComplexAssembly);
         assertEquals(m.getXmlBase()+"complex_4247151",reaction.getRight().iterator().next().getUri());
@@ -94,8 +95,8 @@ public class CTDInteractionConverterTest {
         //and the control's axn code is 'act', and the second actor is 'w', etc..
         ctrl = (Control) m.getByID(m.getXmlBase() + "REC_3727084");
         assertNotNull(ctrl); //chemical C093124 controls(inhibits) the susceptibility W_3727086
-        w = (Modulation) m.getByID(m.getXmlBase() + "W_3727086");
-        assertNotNull(w);
+        w = (Control) m.getByID(m.getXmlBase() + "W_3727086");
+        assertTrue(w instanceof Control);
         assertEquals(w, ctrl.getControlled().iterator().next());
         assertEquals(2, w.getControlledOf().size()); // is controlledOf both REC_3727084 and ACT_GENE_4843 controls
         assertTrue(w.getControlledOf().contains(ctrl));

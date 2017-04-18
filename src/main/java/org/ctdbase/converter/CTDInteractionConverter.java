@@ -154,8 +154,8 @@ public class CTDInteractionConverter extends Converter {
             try {
                 IxnType subIxn = CtdUtil.convertActorToIxn(actor);
                 process = convertIxn(subIxn);
-                if(process instanceof Control)
-                    process.addComment(axnCode.getDescription());
+//                if(process instanceof Control)
+//                    process.addComment(axnCode.getDescription());
                 return process;
             } catch (Exception e) {
                 log.error("Skipped due to error: " + e);
@@ -276,7 +276,7 @@ public class CTDInteractionConverter extends Converter {
                     IxnType subIxn = CtdUtil.convertActorToIxn(actor);
                     AxnCode subAxn = CtdUtil.axnCode(subIxn);
                     if(subAxn == AxnCode.W) {
-                        //TODO: unsure what does axn code 'w' (co-treatment) mean inside an ixn actor of a 'b' parent ..
+                        //unsure what eactly does axn code 'w' mean inside an ixn actor of a 'b' parent ..
                         for (ActorType actorType : subIxn.getActor()) {
                             PhysicalEntity pe = createSPEFromActor(actorType, null);
                             complex.addComponent(pe);
@@ -323,7 +323,12 @@ public class CTDInteractionConverter extends Converter {
                 // - could use Catalysis instead of Control, but then we can only set Conversion to 'controlled'
                 // property of this one, and there are examples where we want to set a Control/Modulation as well.
                 // see ixn id="3727084".
-            } else {
+            }
+            else if (axnCode == AxnCode.W) {
+                control = create(Control.class, rdfId);
+                control.setControlType(ControlType.ACTIVATION);
+            }
+            else {
                 control = create(Modulation.class, rdfId);
             }
 
