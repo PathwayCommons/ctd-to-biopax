@@ -315,6 +315,16 @@
         </actor>
         <actor type="chemical" id="MESH:C440499" parentid="3748031" position="2">lipopolysaccharide, Escherichia coli O111 B4</actor>
     </ixn>
+    <ixn id="4342047"><taxon id="9606">Homo sapiens</taxon><reference pmid="20226526"/>
+        <axn code="exp" degreecode="+" position="1" parentid="4342047">results in increased expression of</axn>
+        <actor type="ixn" id="4342048" parentid="4342047" position="1">
+            <axn code="rxn" degreecode="+" position="1" parentid="4342048">promotes the reaction</axn>
+            <!--TODO: data error: 'rxn' type, but the second actor is not 'ixn' -->
+            <actor type="chemical" id="MESH:C419708" parentid="4342048" position="1">gefitinib</actor>
+            <actor type="chemical" id="MESH:C006632" parentid="4342048" position="2">arsenic trioxide</actor>
+        </actor>
+        <actor type="gene" id="GENE:929" parentid="4342047" form="mRNA" position="2">CD14</actor>
+    </ixn>
 
     <!--data error (XSD min constraint violated): has to be at least 2 actors-->
     <ixn id="4841667"><reference pmid="24269741"/>
