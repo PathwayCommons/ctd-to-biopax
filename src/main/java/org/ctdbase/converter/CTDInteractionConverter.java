@@ -530,9 +530,13 @@ public class CTDInteractionConverter extends Converter {
                 IxnType subIxn = CtdUtil.convertActorToIxn(actor);
                 AxnCode axnCode = CtdUtil.axnCode(subIxn);
                 Interaction process = convertIxn(subIxn);
-                log.debug(String.format("createControllersFromActor; actor ixn:%s, parent:%s, " +
-                        "axn:%s, sub-process:%s (%s)", subIxn.getId(), actor.getParentid(), axnCode,
-                        process.getUri(), process.getModelInterface().getSimpleName()));
+
+                if(process == null) {
+                    log.warn("createControllersFromActor: failed to create a sub-process, controllers for " +
+                            " actor ixn:" + subIxn.getId() + ", axn code:" + axnCode);
+                    return controllers;
+                }
+
                 for (PhysicalEntity pe : getProducts(process)) {
                     controllers.add(pe);
                 }
