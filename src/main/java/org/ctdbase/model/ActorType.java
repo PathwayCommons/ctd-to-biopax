@@ -31,7 +31,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="axn" type="{}axnType" maxOccurs="unbounded"/>
+ *         &lt;element name="axn" type="{}axnType" maxOccurs="unbounded" minOccurs="0"/>
  *         &lt;element name="actor" type="{}actorType" maxOccurs="unbounded" minOccurs="2"/>
  *       &lt;/sequence>
  *       &lt;attribute name="type" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />

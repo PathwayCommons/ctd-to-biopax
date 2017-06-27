@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-    <!-- $Id: CTD_chem_gene_ixns_structured.xsd 14025 2015-03-02 18:32:49Z jwiegers $ -->
+    <!-- $Id: CTD_chem_gene_ixns_structured.xsd 15025 2017-04-18 15:03:06Z twiegers $ -->
     <xs:annotation>
         <xs:documentation>
             The XML Schema for representing curated chemical-gene interactions from the Comparative Toxicogenomics
@@ -140,7 +140,7 @@
     </xs:complexType>
     <xs:complexType name="actorType" mixed="true">
         <xs:sequence>
-            <xs:element type="axnType" name="axn" maxOccurs="unbounded">
+            <xs:element type="axnType" name="axn" maxOccurs="unbounded" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>
                         The action(s) that occur among the actors in the interaction.
