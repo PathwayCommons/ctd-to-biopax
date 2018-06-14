@@ -63,7 +63,7 @@ public class CtdUtil {
         } else if (serializableList.size() == 1) {
             name = serializableList.iterator().next().toString() + formStr;
         } else {
-            name = "[" + extractName(convertActorToIxn(actor), false) + "]";
+            name = "[" + extractName(convertActorToIxn(actor, null), false) + "]";
         }
 
         return name;
@@ -82,7 +82,7 @@ public class CtdUtil {
         return ixn.getAxn().get(0);
     }
 
-    public static IxnType convertActorToIxn(ActorType actor)
+    public static IxnType convertActorToIxn(ActorType actor, IxnType ixn)
     {
         if(CtdUtil.extractActor(actor) != Actor.IXN) {
             throw new IllegalArgumentException("convertActorToIxn: actor is not IXN type; id: " + actor.getId());
@@ -106,6 +106,9 @@ public class CtdUtil {
         }
 
         ixnType.setId(Long.parseLong(actor.getId()));
+        //inherit taxon ids
+        if(ixn!=null)
+            ixnType.getTaxon().addAll(ixn.getTaxon());
 
         return ixnType;
     }

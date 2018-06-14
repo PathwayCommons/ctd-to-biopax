@@ -80,7 +80,8 @@ to run without any command line options to see the help text:
 	 -g,--gene <arg>          CTD gene vocabulary (CSV) [optional]
 	 -o,--output <arg>        Output (BioPAX file) [required]
 	 -r,--remove-dangling     Remove dangling entities for clean-up [optional]
-	 -t,--taxonomy <arg>      Taxonomy (e.g. '9606' for human) [optional]
+	 -t,--taxonomy <arg>      Taxonomy (e.g. '9606' for human; 
+	                          can use special values: 'defined', 'undefined', and 'null') [optional]
 	 -x,--interaction <arg>   structured chemical-gene interaction file (XML)
 	                          [optional]
 

@@ -66,20 +66,30 @@ public class CTDInteractionConverter extends Converter {
             log.warn(String.format("IXN #%d has more than one axn", ixn.getId()));
         }
 
-        //filter by organism (taxonomy) if needed
+        //filter by organism (taxon id)
         if(taxId != null) {
-            boolean skip = (ixn.getTaxon().isEmpty()) ? false : true;
-            for (TaxonType taxonType : ixn.getTaxon()) {
-                if (taxId.equalsIgnoreCase(taxonType.getId())) {
-                    skip = false;
-                    break;
+            if(ixn.getTaxon().isEmpty()) {
+                if(!"undefined".equalsIgnoreCase(taxId))
+                    return null; //skip for undefined species ixn when 'defined' was requested
+            } else if("undefined".equalsIgnoreCase(taxId)) {
+                return null; //skip when the taxon id is set but 'undefined' was requested
+            } else if(!"defined".equalsIgnoreCase(taxId)) {
+                //here <taxon/> is not empty, and we also want a particular id=taxId -
+                boolean taxonMismatch = true;
+                for (TaxonType taxonType : ixn.getTaxon()) {
+                    if (taxId.equalsIgnoreCase(taxonType.getId())) {
+                        taxonMismatch = false; //matched; process this entry below
+                        break;
+                    }
                 }
+                if (taxonMismatch)
+                    return null; //skip then
             }
-            if(skip) {
-                log.debug("Ixn #" + ixn.getId() + " is NOT about taxonomy:" + taxId + "; skipping.");
-                return null;
-            }
+            //else - convert (one or more organisms are there defined but we don't care which)
         }
+        //else - convert (regardless defined or undefined organism it is)
+
+        // Converting current ixn entry.
 
         // Create the interaction object from the ixn's second actor
         Interaction process = createInteraction(ixn);
@@ -152,10 +162,8 @@ public class CTDInteractionConverter extends Converter {
                 || axnCode == AxnCode.RXN)
         {
             try {
-                IxnType subIxn = CtdUtil.convertActorToIxn(actor);
+                IxnType subIxn = CtdUtil.convertActorToIxn(actor, ixn);
                 process = convertIxn(subIxn);
-//                if(process instanceof Control)
-//                    process.addComment(axnCode.getDescription());
                 return process;
             } catch (Exception e) {
                 log.error("Skipped due to error: " + e);
@@ -273,7 +281,7 @@ public class CTDInteractionConverter extends Converter {
                     nameBuilder.append(pe.getDisplayName()).append("/");
                 } else {
                     //IXN : create sub-process(es) and collect their products to use as complex components here
-                    IxnType subIxn = CtdUtil.convertActorToIxn(actor);
+                    IxnType subIxn = CtdUtil.convertActorToIxn(actor, ixn);
                     AxnCode subAxn = CtdUtil.axnCode(subIxn);
                     if(subAxn == AxnCode.W) {
                         //unsure what eactly does axn code 'w' mean inside an ixn actor of a 'b' parent ..
@@ -286,18 +294,20 @@ public class CTDInteractionConverter extends Converter {
                     }
                     else {
                         Interaction proc = convertIxn(subIxn);
-                        for(PhysicalEntity pe : getProducts(proc)) {
-                            complex.addComponent(pe);
-                            complexAssembly.addLeft(pe);
-                            nameBuilder.append(pe.getDisplayName()).append("/");
-                        }
-                        if(complex.getComponent().isEmpty() && proc instanceof Control) {
-                            for(Process controlled : ((Control)proc).getControlled()) {
-                                if(controlled instanceof Control) {
-                                    for(Controller c: ((Control)controlled).getController()) {
-                                        complexAssembly.addLeft((PhysicalEntity) c);//ok to cast here
-                                        complex.addComponent((PhysicalEntity) c);//ok to cast here
-                                        nameBuilder.append(c.getDisplayName()).append("/");
+                        if(proc != null) {
+                            for (PhysicalEntity pe : getProducts(proc)) {
+                                complex.addComponent(pe);
+                                complexAssembly.addLeft(pe);
+                                nameBuilder.append(pe.getDisplayName()).append("/");
+                            }
+                            if (complex.getComponent().isEmpty() && proc instanceof Control) {
+                                for (Process controlled : ((Control) proc).getControlled()) {
+                                    if (controlled instanceof Control) {
+                                        for (Controller c : ((Control) controlled).getController()) {
+                                            complexAssembly.addLeft((PhysicalEntity) c);//ok to cast here
+                                            complex.addComponent((PhysicalEntity) c);//ok to cast here
+                                            nameBuilder.append(c.getDisplayName()).append("/");
+                                        }
                                     }
                                 }
                             }
@@ -338,14 +348,14 @@ public class CTDInteractionConverter extends Converter {
             if(axnCode==AxnCode.W) {
                 setNameFromIxnType(ixn, control, true);
                 for(ActorType actor : ixn.getActor()) {
-                    for (Controller c : createControllersFromActor(actor, null)) {
+                    for (Controller c : createControllersFromActor(actor, null, ixn)) {
                         control.addController(c);
                     }
                 }
             } else {
                 setNameFromIxnType(ixn, control, false);
                 ActorType actor = ixn.getActor().get(1);
-                for (Controller c : createControllersFromActor(actor, null)) {
+                for (Controller c : createControllersFromActor(actor, null, ixn)) {
                     control.addController(c);
                 }
             }
@@ -492,7 +502,7 @@ public class CTDInteractionConverter extends Converter {
         Control control = (Control) model.getByID(absoluteUri(rdfId));
         if(control == null) {
             ControlType controlType = controlTypeAction(axnType, axnCode);
-            Collection<Controller> controllers = createControllersFromActor(actor, controlled);
+            Collection<Controller> controllers = createControllersFromActor(actor, controlled, ixn);
 
             if (controlled instanceof TemplateReaction) {
                 control = create(TemplateReactionRegulation.class, rdfId);
@@ -523,11 +533,11 @@ public class CTDInteractionConverter extends Converter {
 
     // controlled process - when this actor is ixn and is inside an outer ixn/actor with e.g., 'csy' type
     // (controls synthesis, conversion), then the second parameter can be used to set left participant of that proc.
-    private Collection<Controller> createControllersFromActor(ActorType actor, Interaction controlled) {
+    private Collection<Controller> createControllersFromActor(ActorType actor, Interaction controlled, IxnType ixn) {
         HashSet<Controller> controllers = new HashSet<Controller>();
         switch (CtdUtil.extractActor(actor)) {
             case IXN:
-                IxnType subIxn = CtdUtil.convertActorToIxn(actor);
+                IxnType subIxn = CtdUtil.convertActorToIxn(actor, ixn);
                 AxnCode axnCode = CtdUtil.axnCode(subIxn);
                 Interaction process = convertIxn(subIxn);
 
@@ -687,7 +697,7 @@ public class CTDInteractionConverter extends Converter {
         else if (process instanceof TemplateReaction) {
             products.addAll(((TemplateReaction)process).getProduct());
         }
-        else { //never gets here ;)
+        else { //(null?) never gets here ;)
             throw new IllegalArgumentException("getProducts - impossible "
                     + process.getModelInterface().getSimpleName() + " " + process.getUri());
         }

@@ -21,7 +21,7 @@ public class CTDInteractionConverterTest {
         // Memory efficiency fix for huge BioPAX models
         BPCollections.I.setProvider(new TProvider());
 
-        CTDInteractionConverter converter = new CTDInteractionConverter("9606");
+        CTDInteractionConverter converter = new CTDInteractionConverter(null);
         Model m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
 //        (new SimpleIOHandler()).convertToOWL(m, System.out);
 
@@ -102,4 +102,33 @@ public class CTDInteractionConverterTest {
         assertTrue(w.getControlledOf().contains(m.getByID(m.getXmlBase() + "ACT_GENE_4843")));
     }
 
+    // test filtering by a taxonomy id which is not present in the data
+    @Test
+    public void convertYest() {
+        BPCollections.I.setProvider(new TProvider());
+        CTDInteractionConverter converter = new CTDInteractionConverter("559292");
+        Model m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
+        assertTrue(m.getObjects(Control.class).isEmpty());
+
+        converter = new CTDInteractionConverter("undefined");
+        m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
+//        (new SimpleIOHandler()).convertToOWL(m, System.out);
+        assertEquals(8, m.getObjects(Control.class).size());
+        converter = new CTDInteractionConverter("defined");
+        m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
+        assertEquals(36, m.getObjects(Control.class).size());
+        //see if no. controls generated with undefined + defined = all (null)
+        converter = new CTDInteractionConverter(null); //convert everything - any species, and undefined too
+        m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
+        assertEquals(44, m.getObjects(Control.class).size());
+
+        // mouse
+        converter = new CTDInteractionConverter("10090");
+        m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
+        assertEquals(1, m.getObjects(Control.class).size());
+        //human (ignoring records with no taxon defined)
+        converter = new CTDInteractionConverter("9606");
+        m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
+        assertEquals(35, m.getObjects(Control.class).size());
+    }
 }
