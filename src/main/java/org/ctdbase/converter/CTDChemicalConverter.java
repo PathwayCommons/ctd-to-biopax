@@ -36,7 +36,7 @@ public class CTDChemicalConverter extends Converter {
                 2 - CasRN
                 3 - Definition
                 4 - ParentIDs (MESH:*)
-                5- TreeNumber
+                5 - TreeNumber
                 6 - ParentTreeNumber
                 7 - Synonyms (sep w/ |)
                 8 - DrugBank IDs
@@ -126,10 +126,10 @@ public class CTDChemicalConverter extends Converter {
     }
 
     private UnificationXref createUnificationXrefFromId(Model model, String chemicalId) {
-        String[] tokens = chemicalId.split(":");
+        String[] tokens = chemicalId.split(":"); //length=2 always
         String uri = CtdUtil.sanitizeId("rxref_" + chemicalId + "_" + UUID.randomUUID());
         UnificationXref xref = create(UnificationXref.class, uri);
-        xref.setDb("MeSH 2013");
+        xref.setDb(tokens[0]); //mesh
         xref.setId(tokens[1]);
         model.add(xref);
         return xref;

@@ -61,7 +61,7 @@ public class CTDGeneConverter extends Converter {
             2 - GeneID
             3 - AltGeneIDs
             4 - Synonyms
-            5- BioGRIDIds
+            5 - BioGRIDIds
             6 - PharmGKBs
             7 - UniProtIds
          */

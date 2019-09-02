@@ -1,12 +1,9 @@
 package org.ctdbase.converter;
 
-import org.biopax.paxtools.io.SimpleIOHandler;
 import org.biopax.paxtools.model.Model;
 import org.biopax.paxtools.model.level3.*;
 import org.biopax.paxtools.trove.TProvider;
 import org.biopax.paxtools.util.BPCollections;
-import org.ctdbase.util.CtdUtil;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
