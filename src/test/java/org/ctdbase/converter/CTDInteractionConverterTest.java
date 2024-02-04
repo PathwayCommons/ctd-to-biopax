@@ -2,8 +2,6 @@ package org.ctdbase.converter;
 
 import org.biopax.paxtools.model.Model;
 import org.biopax.paxtools.model.level3.*;
-import org.biopax.paxtools.trove.TProvider;
-import org.biopax.paxtools.util.BPCollections;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -14,13 +12,9 @@ import static org.junit.Assert.*;
 public class CTDInteractionConverterTest {
 
     @Test
-    public void convert() throws Exception {
-        // Memory efficiency fix for huge BioPAX models
-        BPCollections.I.setProvider(new TProvider());
-
+    public void convert() {
         CTDInteractionConverter converter = new CTDInteractionConverter(null);
         Model m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
-//        (new SimpleIOHandler()).convertToOWL(m, System.out);
 
         TemplateReactionRegulation trr = (TemplateReactionRegulation) m.getByID(m.getXmlBase()+"EXP_4963086");
         assertNotNull(trr);
@@ -102,7 +96,6 @@ public class CTDInteractionConverterTest {
     // test filtering by a taxonomy id which is not present in the data
     @Test
     public void convertYest() {
-        BPCollections.I.setProvider(new TProvider());
         CTDInteractionConverter converter = new CTDInteractionConverter("559292");
         Model m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
         assertTrue(m.getObjects(Control.class).isEmpty());
