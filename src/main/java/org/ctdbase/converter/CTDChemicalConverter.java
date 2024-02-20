@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.UUID;
 
 public class CTDChemicalConverter extends Converter {
     private static Logger log = LoggerFactory.getLogger(CTDChemicalConverter.class);
@@ -68,19 +67,22 @@ public class CTDChemicalConverter extends Converter {
 
             smallMoleculeReference.addComment(definition);
 
-            smallMoleculeReference.addXref(createUnificationXrefFromId(model, chemicalId));
+            String[] tokens = chemicalId.split(":"); //length=2 always
+            smallMoleculeReference.addXref(createXref(model, UnificationXref.class, tokens[0], tokens[1]));
+
             for (String dbId : dbIds) {
                 if(dbId.isEmpty()) { continue; }
-                smallMoleculeReference.addXref(createDrugBankXref(model, dbId));
+                smallMoleculeReference.addXref(createXref(model, RelationshipXref.class, "DrugBank", dbId));
             }
 
             for (String parentID : parentIDs) {
                 if(parentID.isEmpty()) { continue; }
-                smallMoleculeReference.addXref(createMeshXref(model, parentID));
+                tokens = parentID.split(":");
+                smallMoleculeReference.addXref(createXref(model, RelationshipXref.class, "MeSH 2013", tokens[1]));
             }
 
             if(casRN != null && !casRN.isEmpty()) {
-                smallMoleculeReference.addXref(createCASXref(model, casRN));
+                smallMoleculeReference.addXref(createXref(model, RelationshipXref.class, "CAS", casRN));
             }
 
             model.add(smallMoleculeReference);
@@ -93,46 +95,6 @@ public class CTDChemicalConverter extends Converter {
                 + " chemicals were converted.");
 
         return model;
-    }
-
-    private RelationshipXref createMeshXref(Model model, String parentID) {
-        String[] tokens = parentID.split(":");
-        String uri = CtdUtil.sanitizeId("rxref_" + parentID + "_" + UUID.randomUUID());
-        RelationshipXref rxref = create(RelationshipXref.class, uri);
-        rxref.setDb("MeSH 2013");
-        rxref.setId(tokens[1]);
-        model.add(rxref);
-        return null;
-    }
-
-    //TODO: switch to using createXref(..) method from the base class
-
-    private RelationshipXref createCASXref(Model model, String casRN) {
-        String uri = CtdUtil.sanitizeId("rxref_" + casRN + "_" + UUID.randomUUID());
-        RelationshipXref rxref = create(RelationshipXref.class, uri);
-        rxref.setDb("CAS");
-        rxref.setId(casRN);
-        model.add(rxref);
-        return null;
-    }
-
-    private RelationshipXref createDrugBankXref(Model model, String dbId) {
-        String uri = CtdUtil.sanitizeId("rxref_" + dbId + "_" + UUID.randomUUID());
-        RelationshipXref rxref = create(RelationshipXref.class, uri);
-        rxref.setDb("DrugBank");
-        rxref.setId(dbId);
-        model.add(rxref);
-        return null;
-    }
-
-    private UnificationXref createUnificationXrefFromId(Model model, String chemicalId) {
-        String[] tokens = chemicalId.split(":"); //length=2 always
-        String uri = CtdUtil.sanitizeId("rxref_" + chemicalId + "_" + UUID.randomUUID());
-        UnificationXref xref = create(UnificationXref.class, uri);
-        xref.setDb(tokens[0]); //mesh
-        xref.setId(tokens[1]);
-        model.add(xref);
-        return xref;
     }
 
 }

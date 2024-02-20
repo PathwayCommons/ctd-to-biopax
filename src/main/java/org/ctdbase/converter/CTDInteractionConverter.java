@@ -106,18 +106,9 @@ public class CTDInteractionConverter extends Converter {
         }
 
         // add publication xrefs
-        for (ReferenceType referenceType : ixn.getReference())
-        {
+        for (ReferenceType referenceType : ixn.getReference()) {
             final String pmid = referenceType.getPmid().toString();
-            final String uri =  "http://identifiers.org/pubmed/" + pmid;
-            PublicationXref publicationXref = (PublicationXref) model.getByID(uri);
-            if(publicationXref==null) {
-                publicationXref = create(PublicationXref.class, uri);
-                publicationXref.setDb("pubmed");
-                publicationXref.setId(pmid);
-                model.add(publicationXref);
-            }
-            process.addXref(publicationXref);
+            process.addXref(createXref(model, PublicationXref.class, "pubmed", pmid)); //finds or adds the xref to model as well
         }
 
         return process;
@@ -636,20 +627,14 @@ public class CTDInteractionConverter extends Converter {
             setNameFromActor(actorType, entityReference);
             model.add(entityReference);
             //TODO: set organism property from ixn taxon
-            //add Xref
-            String rxUri = absoluteUri(CtdUtil.sanitizeId("rx_" + actorTypeId.toLowerCase()));
-            RelationshipXref rx = (RelationshipXref)model.getByID(rxUri);
-            if(rx == null) {
-                if(actorTypeId.contains(":")) {
-                    rx = model.addNew(RelationshipXref.class, rxUri);
-                    String[] t = actorTypeId.split(":");
-                    rx.setDb(("gene".equalsIgnoreCase(t[0])) ? "NCBI Gene" : t[0]);
-                    rx.setId(t[1]);
-                } else {
-                    log.warn("Cannot make RX for ER " + refId + " due to no ':' in actor.id=" + actorTypeId);
-                }
+            if(actorTypeId.contains(":")) {
+                String[] t = actorTypeId.split(":");
+                RelationshipXref rx = (RelationshipXref) createXref(model, RelationshipXref.class,
+                    ("gene".equalsIgnoreCase(t[0])) ? "NCBI Gene" : t[0], t[1]);
+                entityReference.addXref(rx);
+            } else {
+                log.warn("Cannot make RX for ER " + refId + " due to no ':' in actor.id=" + actorTypeId);
             }
-            entityReference.addXref(rx);
         }
 
         SimplePhysicalEntity simplePhysicalEntity = (SimplePhysicalEntity) model.getByID(absoluteUri(entityId));

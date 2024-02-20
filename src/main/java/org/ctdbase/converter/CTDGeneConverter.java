@@ -22,6 +22,7 @@ public class CTDGeneConverter extends Converter {
         String[] nextLine;
 
         Model model = createNewModel();
+
         while((nextLine = reader.readNext()) != null) {
             // Skip commented lines
             if (nextLine[0].startsWith("#")) {

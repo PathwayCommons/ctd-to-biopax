@@ -15,7 +15,7 @@ and integrating several CSV files that are distributed by the provider.
 - **Type**: Drug activity
 - **Format**: XML/CSV
 - **License**: Free for academic use
-- **Publications**: [main PMID:27651457](http://identifiers.org/pubmed/27651457), [curation PMID:21933848](http://identifiers.org/pubmed/21933848)
+- **Publications**: [main PMID:27651457](http://bioregistry.io/pubmed:27651457), [curation PMID:21933848](http://bioregistry.io/pubmed:21933848)
 
 ### Implementation details
 The converter is structured as a java maven project, where the only major 

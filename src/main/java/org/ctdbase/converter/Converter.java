@@ -11,12 +11,12 @@ import java.io.InputStream;
 
 public abstract class Converter {
 
-    private String XMLBase = Converter.sharedXMLBase;
-    public static String sharedXMLBase = "http://www.ctdbase.org/#";
+    private String xmlBase = Converter.sharedXMLBase;
+    public static String sharedXMLBase = "ctdbase:";
 
     public Model createNewModel() {
         Model model = BioPAXLevel.L3.getDefaultFactory().createModel();
-        model.setXmlBase(getXMLBase());
+        model.setXmlBase(getXmlBase());
         return model;
     }
 
@@ -24,23 +24,29 @@ public abstract class Converter {
         return BioPAXLevel.L3.getDefaultFactory().create(aClass, absoluteUri(rdfId));
     }
 
-    public String getXMLBase() {
-        return XMLBase;
+    public String getXmlBase() {
+        return xmlBase;
     }
 
-    public void setXMLBase(String sharedXMLBase) {
-        XMLBase = sharedXMLBase;
+    public void setXmlBase(String sharedXMLBase) {
+        xmlBase = sharedXMLBase;
     }
 
     protected String absoluteUri(String rdfId) {
-        return (rdfId.startsWith("http:")) ? rdfId : getXMLBase() + rdfId;
+        return getXmlBase() + rdfId;
     }
 
     // a public abstract method to be implemented:
     public abstract Model convert(InputStream inputStream) throws IOException;
 
     protected <T extends Xref>  Xref createXref(Model model, Class<T> xrefClass, String db, String id) {
-        String rdfId = CtdUtil.sanitizeId(xrefClass.getSimpleName().toLowerCase() + "_" + db + "_" + id );
+        String pref = switch(xrefClass.getSimpleName()) {
+            case "UnificationXref" -> "ux_";
+            case "RelationshipXref" -> "rx";
+            case "PublicationXref" -> "px";
+            default -> "x";
+        };
+        String rdfId = CtdUtil.sanitizeId(pref + "_" + db + "_" + id );
         T xref = (T) model.getByID(absoluteUri(rdfId));
         if(xref == null) {
             xref = create(xrefClass, rdfId);
