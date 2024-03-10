@@ -20,7 +20,6 @@ public class CTDGeneConverter extends Converter {
     public Model convert(InputStream inputStream) throws IOException {
         CSVReader reader = new CSVReader(new InputStreamReader(inputStream));
         String[] nextLine;
-
         Model model = createNewModel();
 
         while((nextLine = reader.readNext()) != null) {
@@ -28,17 +27,15 @@ public class CTDGeneConverter extends Converter {
             if (nextLine[0].startsWith("#")) {
                 continue;
             }
-
             if(nextLine.length < 8) {
                 log.warn(nextLine[0] + "' does not have enough columns to it. Skipping.");
                 continue;
             }
-
+            // create an ER of different type for each gene form
             for (GeneForm geneForm : GeneForm.values()) {
-                generateReference(model, geneForm.getReferenceClass(), geneForm, nextLine);
+                generateReference(model, geneForm, nextLine);
             }
         }
-
         reader.close();
 
         log.info("Done with the gene conversion. "
@@ -51,7 +48,6 @@ public class CTDGeneConverter extends Converter {
 
     private EntityReference generateReference(
             Model model,
-            Class<? extends EntityReference> aClass,
             GeneForm geneForm,
             String[] tokens)
     {
@@ -70,11 +66,11 @@ public class CTDGeneConverter extends Converter {
         String geneSymbol = tokens[0];
         String geneName = tokens[1];
         String geneID = tokens[2];
-        String[] altGeneIds = tokens[3].split(INTRA_FIELD_SEPARATOR);
-        String[] synonyms = tokens[4].split(INTRA_FIELD_SEPARATOR);
-        String[] biogridIds = tokens[5].split(INTRA_FIELD_SEPARATOR);
-        String[] pharmGKBIds = tokens[6].split(INTRA_FIELD_SEPARATOR);
-        String[] uniprotIds = tokens[7].split(INTRA_FIELD_SEPARATOR);
+//        String[] altGeneIds = tokens[3].split(INTRA_FIELD_SEPARATOR);
+//        String[] synonyms = tokens[4].split(INTRA_FIELD_SEPARATOR);
+//        String[] biogridIds = tokens[5].split(INTRA_FIELD_SEPARATOR);
+//        String[] pharmGKBIds = tokens[6].split(INTRA_FIELD_SEPARATOR);
+//        String[] uniprotIds = tokens[7].split(INTRA_FIELD_SEPARATOR); //often not relevant organism...
 
         String rdfId = CtdUtil.sanitizeId("ref_" +  geneForm.toString().toLowerCase()
                 + "_gene_" + geneID.toLowerCase());
@@ -84,28 +80,34 @@ public class CTDGeneConverter extends Converter {
             log.warn("Already had the gene " + geneID + ". Skipping it.");
             return null;
         }
-        entityReference = create(aClass, rdfId);
 
+        entityReference = create(geneForm.getReferenceClass(), rdfId);
+        entityReference.addXref(createXref(model, RelationshipXref.class, "hgnc.symbol", geneSymbol));
+        entityReference.addXref(createXref(model, RelationshipXref.class, "ncbigene", geneID));
         entityReference.setStandardName(geneSymbol);
         entityReference.setDisplayName(geneSymbol);
-        entityReference.addName(geneSymbol);
-        for (String synonym : synonyms) {
-            if(!synonym.isEmpty()) { entityReference.addName(synonym); }
+//        for (String synonym : synonyms) { //too many, can be found in other/external resources after all
+//            if(!synonym.isEmpty()) {
+//                entityReference.addName(synonym);
+//            }
+//        }
+
+        if(!geneName.isEmpty()) {
+            entityReference.addComment(geneName);
         }
 
-        if(!geneName.isEmpty()) { entityReference.addComment(geneName); }
-        entityReference.addXref(createXref(model, RelationshipXref.class, "NCBI Gene", geneID));
-        // Let's skip other NCBI gene references, they inflate the model
-        //addXrefsFromArray(model, entityReference, RelationshipXref.class, "NCBI Gene", altGeneIds);
-        addXrefsFromArray(model, entityReference, RelationshipXref.class, "BioGRID", biogridIds);
-        addXrefsFromArray(model, entityReference, RelationshipXref.class, "PharmGKB Gene", pharmGKBIds);
-        addXrefsFromArray(model, entityReference, RelationshipXref.class, "UniProt", uniprotIds);
+        // Let's skip other NCBI gene references, for they inflate the model too much...
+//        addXrefsFromArray(model, entityReference, RelationshipXref.class, "NCBI Gene", altGeneIds);
+//        addXrefsFromArray(model, entityReference, RelationshipXref.class, "BioGRID", biogridIds);
+//        addXrefsFromArray(model, entityReference, RelationshipXref.class, "PharmGKB Gene", pharmGKBIds);
+//        addXrefsFromArray(model, entityReference, RelationshipXref.class, "UniProt", uniprotIds);
 
         model.add(entityReference);
         return entityReference;
     }
 
-    private void addXrefsFromArray(Model model, EntityReference entityReference, Class<? extends Xref> xrefClass, String db, String[] ids) {
+    private void addXrefsFromArray(Model model, EntityReference entityReference,
+                                   Class<? extends Xref> xrefClass, String db, String[] ids) {
         for (String id : ids) {
             if(!id.isEmpty()) {
                 entityReference.addXref(createXref(model, xrefClass, db, id));

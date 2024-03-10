@@ -5,7 +5,7 @@ Originated from https://bitbucket.org/armish/gsoc14 and will continue here (ToDo
 
 Unlike many other drug-target databases, this data resource has a controlled 
 vocabulary that can be mapped to BioPAX, for example: 'nutlin 3 results 
-in increased expression of BAX'. Therefore implementation of a converter 
+in increased expression of BAX'. Therefore, implementation of a converter 
 first requires a manual mapping from CTD terms to BioPAX ontology. 
 Once the mapping is done, then the actual conversion requires parsing 
 and integrating several CSV files that are distributed by the provider.
@@ -36,7 +36,7 @@ the converted models are merged and a single BioPAX file is provided as output.
 
 The gene/chemical vocabulary converters produce BioPAX file with only 
 `EntityReference`s in them. Each entity reference in this converted 
-models includes all the external referneces provided within the vocabulary file.
+models includes the external references provided within the vocabulary file.
 From the chemical vocabulary, `SmallMoleculeReference`s are produced;
 and from the gene vocabulary, various types of references are produced 
 for corresponding CTD gene forms: `ProteinReference`, `DnaReference`, 
@@ -44,12 +44,9 @@ for corresponding CTD gene forms: `ProteinReference`, `DnaReference`,
 
 The interactions file contains all detailed interactions between chemicals 
 and genes, but no background information on the chemical/gene entities.
-Therefore it is necessary to convert all these files and merge these 
-models into one in order to get a properly annotated BioPAX model.
-The converter exactly does that by making sure that the entity references 
-from the vocabulary files match with the ones produced from the interactions file.
-This allows filling in the gaps and annotations of the entities in the 
-final converted model.
+
+We can convert any or all of these three files at once, 
+merge into one BioPAX model.
 
 The CTD data sets have nested interactions that are captured by their 
 structured XML file and their XML schema: 
@@ -79,8 +76,8 @@ to run without any command line options to see the help text:
 	 -c,--chemical <arg>      CTD chemical vocabulary (CSV) [optional]
 	 -g,--gene <arg>          CTD gene vocabulary (CSV) [optional]
 	 -o,--output <arg>        Output (BioPAX file) [required]
-	 -r,--remove-dangling     Remove dangling entities for clean-up [optional]
-	 -t,--taxonomy <arg>      Taxonomy (e.g. '9606' for human; 
+	 -r,--remove-dangling     Remove dangling utility class entities [optional; use with -x -t]
+	 -t,--taxonomy <arg>      filter interactions by species, Taxonomy ID ('9606' for human);
 	                          can use special values: 'defined', 'undefined', and 'null') [optional]
 	 -x,--interaction <arg>   structured chemical-gene interaction file (XML)
 	                          [optional]
@@ -89,6 +86,6 @@ If you want to test the converter though, you can download small (old) example
 files from [goal2_ctd_smallSampleInputFiles-20140702.zip](https://bitbucket.org/armish/gsoc14/downloads/goal2_ctd_smallSampleInputFiles-20140702.zip).
 To convert these sample files into a single BioPAX file, run the following command:
 
-	$ java -jar ctd-to-biopax.jar -x ctd_small.xml -c CTD_chemicals_small.csv -g CTD_genes_small.csv -r -o ctd.owl
+	$ java -jar ctd-to-biopax.jar -x ctd_small.xml -c CTD_chemicals_small.csv -g CTD_genes_small.csv -r -t 9606 -o ctd.owl
 
 which will create the `ctd.owl` file for you.

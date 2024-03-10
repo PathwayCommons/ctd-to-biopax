@@ -25,7 +25,7 @@ public class CTDChemicalConverter extends Converter {
             // Skip commented lines
             if(nextLine[0].startsWith("#")) { continue; }
 
-            if(nextLine.length < 9) {
+            if(nextLine.length < 8) {
                 log.warn(nextLine[0] + "' does not have enough columns. Skipping.");
                 continue;
             }
@@ -45,9 +45,9 @@ public class CTDChemicalConverter extends Converter {
             String chemicalId = nextLine[1];
             String casRN = nextLine[2];
             String definition = nextLine[3];
-            String[] parentIDs = nextLine[4].split(INTRA_FIELD_SEPARATOR);
-            String[] synonyms = nextLine[7].split(INTRA_FIELD_SEPARATOR);
-            String[] dbIds = nextLine[8].split(INTRA_FIELD_SEPARATOR);
+//            String[] parentIDs = nextLine[4].split(INTRA_FIELD_SEPARATOR);
+//            String[] synonyms = nextLine[7].split(INTRA_FIELD_SEPARATOR);
+//            String[] dbIds = nextLine[8].split(INTRA_FIELD_SEPARATOR); //not present in CTD 2024 data...
 
             String rdfId = CtdUtil.sanitizeId("ref_chemical_" + chemicalId.toLowerCase());
 
@@ -60,26 +60,25 @@ public class CTDChemicalConverter extends Converter {
 
             smallMoleculeReference.setDisplayName(chemName);
             smallMoleculeReference.setStandardName(chemName);
-            smallMoleculeReference.addName(chemName);
-            for (String synonym : synonyms) {
-                smallMoleculeReference.addName(synonym);
-            }
+//            for (String synonym : synonyms) {
+//                smallMoleculeReference.addName(synonym);
+//            }
 
             smallMoleculeReference.addComment(definition);
 
             String[] tokens = chemicalId.split(":"); //length=2 always
             smallMoleculeReference.addXref(createXref(model, UnificationXref.class, tokens[0], tokens[1]));
 
-            for (String dbId : dbIds) {
-                if(dbId.isEmpty()) { continue; }
-                smallMoleculeReference.addXref(createXref(model, RelationshipXref.class, "DrugBank", dbId));
-            }
+//            for (String dbId : dbIds) {
+//                if(dbId.isEmpty()) { continue; }
+//                smallMoleculeReference.addXref(createXref(model, RelationshipXref.class, "DrugBank", dbId));
+//            }
 
-            for (String parentID : parentIDs) {
-                if(parentID.isEmpty()) { continue; }
-                tokens = parentID.split(":");
-                smallMoleculeReference.addXref(createXref(model, RelationshipXref.class, "MeSH 2013", tokens[1]));
-            }
+//            for (String parentID : parentIDs) {
+//                if(parentID.isEmpty()) { continue; }
+//                tokens = parentID.split(":");
+//                smallMoleculeReference.addXref(createXref(model, RelationshipXref.class, "MeSH 2013", tokens[1]));
+//            }
 
             if(casRN != null && !casRN.isEmpty()) {
                 smallMoleculeReference.addXref(createXref(model, RelationshipXref.class, "CAS", casRN));

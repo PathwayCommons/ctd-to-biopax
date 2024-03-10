@@ -1,15 +1,16 @@
 package org.ctdbase.converter;
 
+//import org.biopax.paxtools.io.SimpleIOHandler;
 import org.biopax.paxtools.model.Model;
 import org.biopax.paxtools.model.level3.*;
+import org.ctdbase.util.model.GeneForm;
 import org.junit.Test;
+
+import java.io.IOException;
 
 import static org.junit.Assert.*;
 
-/**
- * Created by igor on 04/04/17.
- */
-public class CTDInteractionConverterTest {
+public class CTDConvertersTest {
 
     @Test
     public void convert() {
@@ -95,18 +96,19 @@ public class CTDInteractionConverterTest {
 
     // test filtering by a taxonomy id which is not present in the data
     @Test
-    public void convertYest() {
+    public void convertTaxon() {
         CTDInteractionConverter converter = new CTDInteractionConverter("559292");
         Model m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
         assertTrue(m.getObjects(Control.class).isEmpty());
 
         converter = new CTDInteractionConverter("undefined");
         m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
-//        (new SimpleIOHandler()).convertToOWL(m, System.out);
         assertEquals(8, m.getObjects(Control.class).size());
+
         converter = new CTDInteractionConverter("defined");
         m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
         assertEquals(36, m.getObjects(Control.class).size());
+
         //see if no. controls generated with undefined + defined = all (null)
         converter = new CTDInteractionConverter(null); //convert everything - any species, and undefined too
         m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
@@ -116,9 +118,43 @@ public class CTDInteractionConverterTest {
         converter = new CTDInteractionConverter("10090");
         m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
         assertEquals(1, m.getObjects(Control.class).size());
+
         //human (ignoring records with no taxon defined)
         converter = new CTDInteractionConverter("9606");
         m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
         assertEquals(35, m.getObjects(Control.class).size());
+//        (new SimpleIOHandler()).convertToOWL(m, System.out);
+    }
+
+    @Test
+    public void convertGenes() throws IOException {
+        CTDGeneConverter converter = new CTDGeneConverter();
+        Model m = converter.convert(getClass().getResourceAsStream("/test_CTD_genes.csv"));
+        assertEquals(GeneForm.values().length, m.getObjects(EntityReference.class).size());
+        assertEquals(3, m.getObjects(ProteinReference.class).size());
+        assertEquals(5, m.getObjects(RnaRegionReference.class).size());
+        assertEquals(2, m.getObjects(DnaRegionReference.class).size());
+        assertEquals(3, m.getObjects(RnaReference.class).size());
+        assertEquals(2, m.getObjects(DnaReference.class).size());
+        assertEquals(2, m.getObjects(RelationshipXref.class).size());
+        assertEquals(0, m.getObjects(UnificationXref.class).size());
+        assertEquals(17, m.getObjects().size());
+        RnaReference rr1 = (RnaReference) m.getByID("ctdbase:ref_chemical_mesh_c106820");
+        //assertNotNull(rr1);
+//        (new SimpleIOHandler()).convertToOWL(m, System.out);
+    }
+
+    @Test
+    public void convertChemicals() throws IOException {
+        CTDChemicalConverter converter = new CTDChemicalConverter();
+        converter.setXmlBase("ctd:");
+        Model m = converter.convert(getClass().getResourceAsStream("/test_CTD_chemicals.csv"));
+        assertEquals(2, m.getObjects(SmallMoleculeReference.class).size());
+        assertEquals(1, m.getObjects(RelationshipXref.class).size());
+        assertEquals(2, m.getObjects(UnificationXref.class).size());
+        assertEquals(5, m.getObjects().size());
+        SmallMoleculeReference smr1 = (SmallMoleculeReference) m.getByID("ctd:ref_chemical_mesh_c106820");
+        assertNotNull(smr1);
+//        (new SimpleIOHandler()).convertToOWL(m, System.out);
     }
 }

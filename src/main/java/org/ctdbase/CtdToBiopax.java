@@ -1,5 +1,6 @@
 package org.ctdbase;
 
+import org.biopax.paxtools.model.level3.UtilityClass;
 import org.ctdbase.converter.CTDChemicalConverter;
 import org.ctdbase.converter.CTDGeneConverter;
 import org.ctdbase.converter.CTDInteractionConverter;
@@ -32,7 +33,8 @@ public class CtdToBiopax {
                 .addOption("c", "chemical", true, "CTD chemical vocabulary (CSV) [optional]")
                 .addOption("o", "output", true, "Output (BioPAX file) [required]")
                 .addOption("t", "taxonomy", true, "Taxonomy (e.g. '9606' for human) [optional]")
-                .addOption("r", "remove-dangling", false, "Remove dangling entities for clean-up [optional]")
+                .addOption("r", "remove-dangling", false,
+                    "Remove dangling UtilityClass objects from final model [optional; recommended when using options: -x -t]")
         ;
 
         try {
@@ -80,8 +82,8 @@ public class CtdToBiopax {
             }
 
             if(commandLine.hasOption("r")) {
-                Set<BioPAXElement> removed = ModelUtils.removeObjectsIfDangling(finalModel, EntityReference.class);
-                log.info("Removed " + removed.size() + " dangling entity references from the model.");
+                Set<BioPAXElement> removed = ModelUtils.removeObjectsIfDangling(finalModel, UtilityClass.class);
+                log.info("Removed " + removed.size() + " dangling UtilityClass objects from the model.");
             }
 
             finalModel.setXmlBase(Converter.sharedXMLBase);
