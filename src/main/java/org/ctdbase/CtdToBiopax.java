@@ -1,5 +1,6 @@
 package org.ctdbase;
 
+import org.apache.commons.lang3.StringUtils;
 import org.biopax.paxtools.model.level3.UtilityClass;
 import org.ctdbase.converter.CTDChemicalConverter;
 import org.ctdbase.converter.CTDGeneConverter;
@@ -11,14 +12,15 @@ import org.biopax.paxtools.controller.ModelUtils;
 import org.biopax.paxtools.io.SimpleIOHandler;
 import org.biopax.paxtools.model.BioPAXElement;
 import org.biopax.paxtools.model.Model;
-import org.biopax.paxtools.model.level3.EntityReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
 
 public class CtdToBiopax {
     private static Logger log = LoggerFactory.getLogger(CtdToBiopax.class);
@@ -61,7 +63,7 @@ public class CtdToBiopax {
                 }
                 Converter converter = new CTDInteractionConverter(taxonomy);
                 log.info("Option 'x'. Using " + converter.getClass().getSimpleName() + " to convert: " + fileName);
-                Model model = converter.convert(new FileInputStream(fileName));
+                Model model = converter.convert(inputDataStream(fileName));
                 merger.merge(finalModel, model);
             }
 
@@ -69,7 +71,7 @@ public class CtdToBiopax {
                 String fileName = commandLine.getOptionValue("g");
                 Converter converter = new CTDGeneConverter();
                 log.info("Option 'g'. Using " + converter.getClass().getSimpleName() + " to convert: " + fileName);
-                Model model = converter.convert(new FileInputStream(fileName));
+                Model model = converter.convert(inputDataStream(fileName));
                 merger.merge(finalModel, model);
             }
 
@@ -77,7 +79,7 @@ public class CtdToBiopax {
                 String fileName = commandLine.getOptionValue("c");
                 Converter converter = new CTDChemicalConverter();
                 log.info("Option 'c'. Using " + converter.getClass().getSimpleName() + " to convert: " + fileName);
-                Model model = converter.convert(new FileInputStream(fileName));
+                Model model = converter.convert(inputDataStream(fileName));
                 merger.merge(finalModel, model);
             }
 
@@ -101,6 +103,14 @@ public class CtdToBiopax {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    static InputStream inputDataStream(String fileName) throws IOException {
+        InputStream inputStream = new FileInputStream(fileName);
+        if (StringUtils.endsWith(fileName, ".gz")) {
+            inputStream = new GZIPInputStream(inputStream);
+        }
+        return inputStream;
     }
 
 }

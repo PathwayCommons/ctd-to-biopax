@@ -81,6 +81,7 @@ to run without any command line options to see the help text:
 	                          can use special values: 'defined', 'undefined', and 'null') [optional]
 	 -x,--interaction <arg>   structured chemical-gene interaction file (XML)
 	                          [optional]
+     Note: the input data files can be compressed, e.g. CTD_genes.csv.gz
 
 If you want to test the converter though, you can download small (old) example 
 files from [goal2_ctd_smallSampleInputFiles-20140702.zip](https://bitbucket.org/armish/gsoc14/downloads/goal2_ctd_smallSampleInputFiles-20140702.zip).
