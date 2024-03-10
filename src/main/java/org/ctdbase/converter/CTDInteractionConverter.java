@@ -266,7 +266,7 @@ public class CTDInteractionConverter extends Converter {
             StringBuilder nameBuilder = new StringBuilder();
             for(ActorType actor : actors) {
                 if(CtdUtil.extractActor(actor) != Actor.IXN) {
-                    PhysicalEntity pe = createSPEFromActor(actor, null);
+                    PhysicalEntity pe = createSPEFromActor(actor, null, ixn.getTaxon());
                     complex.addComponent(pe);
                     complexAssembly.addLeft(pe);
                     nameBuilder.append(pe.getDisplayName()).append("/");
@@ -275,9 +275,9 @@ public class CTDInteractionConverter extends Converter {
                     IxnType subIxn = CtdUtil.convertActorToIxn(actor, ixn);
                     AxnCode subAxn = CtdUtil.axnCode(subIxn);
                     if(subAxn == AxnCode.W) {
-                        //unsure what eactly does axn code 'w' mean inside an ixn actor of a 'b' parent ..
+                        //unsure what eactly does axn code 'w' mean inside an ixn actor of a 'b' parent
                         for (ActorType actorType : subIxn.getActor()) {
-                            PhysicalEntity pe = createSPEFromActor(actorType, null);
+                            PhysicalEntity pe = createSPEFromActor(actorType, null, ixn.getTaxon());
                             complex.addComponent(pe);
                             complexAssembly.addLeft(pe);
                             nameBuilder.append(pe.getDisplayName()).append("/");
@@ -361,7 +361,7 @@ public class CTDInteractionConverter extends Converter {
         if (degradation == null) {
             degradation = create(Degradation.class, processId);
             setNameFromIxnType(ixn, degradation, false);
-            SimplePhysicalEntity par = createSPEFromActor(actor, null);
+            SimplePhysicalEntity par = createSPEFromActor(actor, null, ixn.getTaxon());
             degradation.addLeft(par);
             degradation.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
             model.add(degradation);
@@ -375,8 +375,8 @@ public class CTDInteractionConverter extends Converter {
         Transport transport = (Transport) model.getByID(absoluteUri(processId));
         if (transport == null) {
             transport = create(Transport.class, processId);
-            SimplePhysicalEntity leftPar = createSPEFromActor(actor, leftLoc);
-            SimplePhysicalEntity rightPar = createSPEFromActor(actor, rightLoc);
+            SimplePhysicalEntity leftPar = createSPEFromActor(actor, leftLoc, ixn.getTaxon());
+            SimplePhysicalEntity rightPar = createSPEFromActor(actor, rightLoc, ixn.getTaxon());
             transport.addLeft(leftPar);
             transport.addRight(rightPar);
             transport.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
@@ -436,11 +436,11 @@ public class CTDInteractionConverter extends Converter {
             biochemicalReaction = create(BiochemicalReaction.class, processId);
             setNameFromIxnType(ixn, biochemicalReaction, false);
             if(useLeft) {
-                SimplePhysicalEntity leftPar = createSPEFromActor(actor, null);
+                SimplePhysicalEntity leftPar = createSPEFromActor(actor, null, ixn.getTaxon());
                 biochemicalReaction.addLeft(leftPar);
             }
             if(useRight) {
-                SimplePhysicalEntity rightPar = createSPEFromActor(actor, term);
+                SimplePhysicalEntity rightPar = createSPEFromActor(actor, term, ixn.getTaxon());
                 biochemicalReaction.addRight(rightPar);
                 if (term != null) {
                     if (CtdUtil.extractActor(actor).equals(Actor.CHEMICAL)) {
@@ -461,7 +461,8 @@ public class CTDInteractionConverter extends Converter {
     {
         if(term!=null) id += "_" + term;
         ModificationFeature feature = create(ModificationFeature.class, id);
-        SequenceModificationVocabulary modificationVocabulary = create(SequenceModificationVocabulary.class, "seqmod_" + id);
+        SequenceModificationVocabulary modificationVocabulary = create(
+            SequenceModificationVocabulary.class, "seqmod_" + id);
         modificationVocabulary.addTerm(term);
         feature.setModificationType(modificationVocabulary);
         model.add(feature);
@@ -476,7 +477,7 @@ public class CTDInteractionConverter extends Converter {
             templateReaction = create(TemplateReaction.class, processId);
             setNameFromIxnType(ixn, templateReaction, false);
             templateReaction.setTemplateDirection(TemplateDirectionType.FORWARD);
-            SimplePhysicalEntity actorEntity = createSPEFromActor(actor, null);
+            SimplePhysicalEntity actorEntity = createSPEFromActor(actor, null, ixn.getTaxon());
             templateReaction.addProduct(actorEntity);
             model.add(templateReaction);
         }
@@ -525,7 +526,7 @@ public class CTDInteractionConverter extends Converter {
     // controlled process - when this actor is ixn and is inside an outer ixn/actor with e.g., 'csy' type
     // (controls synthesis, conversion), then the second parameter can be used to set left participant of that proc.
     private Collection<Controller> createControllersFromActor(ActorType actor, Interaction controlled, IxnType ixn) {
-        HashSet<Controller> controllers = new HashSet<Controller>();
+        HashSet<Controller> controllers = new HashSet<>();
         switch (CtdUtil.extractActor(actor)) {
             case IXN:
                 IxnType subIxn = CtdUtil.convertActorToIxn(actor, ixn);
@@ -561,14 +562,14 @@ public class CTDInteractionConverter extends Converter {
 
                 break;
             default: // If not an IXN, then it is a physical entity
-                controllers.add(createSPEFromActor(actor, null));
+                controllers.add(createSPEFromActor(actor, null, ixn.getTaxon()));
                 break;
         }
 
         return controllers;
     }
 
-    private SimplePhysicalEntity createSPEFromActor(ActorType actor, String state) {
+    private SimplePhysicalEntity createSPEFromActor(ActorType actor, String state, List<TaxonType> taxonTypes) {
         SimplePhysicalEntity spe;
         Actor aType = CtdUtil.extractActor(actor);
         switch (aType) {
@@ -584,6 +585,11 @@ public class CTDInteractionConverter extends Converter {
                 Class<? extends SimplePhysicalEntity> eClass = geneForm.getEntityClass();
                 Class<? extends EntityReference> refClass = geneForm.getReferenceClass();
                 spe = createEntityFromActor(actor, eClass, refClass, state);
+                //add organism if it makes sense
+                if(spe.getEntityReference() instanceof SequenceEntityReference) {
+                    BioSource organism = bioSource(taxonTypes);
+                    ((SequenceEntityReference) spe.getEntityReference()).setOrganism(organism);
+                }
                 break;
             case IXN:
             default:
@@ -626,11 +632,10 @@ public class CTDInteractionConverter extends Converter {
             entityReference = create(referenceClass, refId);
             setNameFromActor(actorType, entityReference);
             model.add(entityReference);
-            //TODO: set organism property from ixn taxon
             if(actorTypeId.contains(":")) {
                 String[] t = actorTypeId.split(":");
                 RelationshipXref rx = (RelationshipXref) createXref(model, RelationshipXref.class,
-                    ("gene".equalsIgnoreCase(t[0])) ? "NCBI Gene" : t[0], t[1]);
+                    ("gene".equalsIgnoreCase(t[0])) ? "ncbigene" : t[0], t[1]);
                 entityReference.addXref(rx);
             } else {
                 log.warn("Cannot make RX for ER " + refId + " due to no ':' in actor.id=" + actorTypeId);
@@ -670,7 +675,7 @@ public class CTDInteractionConverter extends Converter {
     }
 
     private static Set<PhysicalEntity> getProducts(Process process) {
-        Set<PhysicalEntity> products = new HashSet<PhysicalEntity>();
+        Set<PhysicalEntity> products = new HashSet<>();
         if(process instanceof Control) {
             for (Process controlled : ((Control) process).getControlled()) {
                 products.addAll(getProducts(controlled));
@@ -688,6 +693,15 @@ public class CTDInteractionConverter extends Converter {
         }
 
         return products;
+    }
+
+    private BioSource bioSource(List<TaxonType> taxonTypes) {
+        if(taxonTypes == null || taxonTypes.isEmpty()) {
+            return null;
+        }
+        TaxonType org = taxonTypes.stream().filter(t -> StringUtils.equals(t.getId(),taxId))
+            .findFirst().orElse(taxonTypes.get(0));
+        return createBioSource(model, org.getId(), org.getValue());
     }
 
 }

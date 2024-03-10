@@ -3,6 +3,8 @@ package org.ctdbase.converter;
 import org.biopax.paxtools.model.BioPAXElement;
 import org.biopax.paxtools.model.BioPAXLevel;
 import org.biopax.paxtools.model.Model;
+import org.biopax.paxtools.model.level3.BioSource;
+import org.biopax.paxtools.model.level3.UnificationXref;
 import org.biopax.paxtools.model.level3.Xref;
 import org.ctdbase.util.CtdUtil;
 
@@ -55,5 +57,18 @@ public abstract class Converter {
             model.add(xref);
         }
         return xref;
+    }
+
+    //
+    protected BioSource createBioSource(Model model, String taxonomyId, String name) {
+        String uri = "bioregistry.io/ncbitaxon:" + taxonomyId;
+        BioSource bioSource = (BioSource) model.getByID(uri);
+        if(bioSource == null) {
+            UnificationXref x = model.addNew(UnificationXref.class, "ncbitaxon:" + taxonomyId);
+            bioSource = model.addNew(BioSource.class, uri);
+            bioSource.setDisplayName(name);
+            bioSource.addXref(x);
+        }
+        return bioSource;
     }
 }

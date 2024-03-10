@@ -123,6 +123,10 @@ public class CTDConvertersTest {
         converter = new CTDInteractionConverter("9606");
         m = converter.convert(getClass().getResourceAsStream("/chem_gene_ixns_struct.xml"));
         assertEquals(35, m.getObjects(Control.class).size());
+        ProteinReference pr = (ProteinReference) m.getByID("ctdbase:ref_protein_gene_83756");
+        assertNotNull(pr);
+        assertNotNull(pr.getOrganism());
+        assertEquals("Homo sapiens", pr.getOrganism().getDisplayName());
 //        (new SimpleIOHandler()).convertToOWL(m, System.out);
     }
 
@@ -139,8 +143,8 @@ public class CTDConvertersTest {
         assertEquals(2, m.getObjects(RelationshipXref.class).size());
         assertEquals(0, m.getObjects(UnificationXref.class).size());
         assertEquals(17, m.getObjects().size());
-        RnaReference rr1 = (RnaReference) m.getByID("ctdbase:ref_chemical_mesh_c106820");
-        //assertNotNull(rr1);
+        ProteinReference rr1 = (ProteinReference) m.getByID("ctdbase:ref_modified_form_gene_611");
+        assertNotNull(rr1);
 //        (new SimpleIOHandler()).convertToOWL(m, System.out);
     }
 
