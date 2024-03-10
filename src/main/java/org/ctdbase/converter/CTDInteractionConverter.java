@@ -587,8 +587,10 @@ public class CTDInteractionConverter extends Converter {
                 spe = createEntityFromActor(actor, eClass, refClass, state);
                 //add organism if it makes sense
                 if(spe.getEntityReference() instanceof SequenceEntityReference) {
-                    BioSource organism = bioSource(taxonTypes);
-                    ((SequenceEntityReference) spe.getEntityReference()).setOrganism(organism);
+                    SequenceEntityReference ser = (SequenceEntityReference) spe.getEntityReference();
+                    if(ser.getOrganism() == null) {
+                        ser.setOrganism(bioSource(taxonTypes));
+                    }
                 }
                 break;
             case IXN:
